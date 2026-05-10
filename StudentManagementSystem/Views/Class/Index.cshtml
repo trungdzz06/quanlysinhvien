@@ -1,0 +1,114 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml
+ * Tổng quan: Giao diện hiển thị danh sách toàn bộ các Lớp hành chính.
+ * Chức năng: Hỗ trợ lọc theo Khoa, tìm kiếm từ khóa và cung cấp các lối tắt CRUD.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model IEnumerable<StudentManagementSystem.Models.Class>
+
+@{
+    ViewData["Title"] = "Danh Sách Lớp Hành Chính";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng giúp người dùng định vị phân mục đang truy cập *@
+    <div class="breadcrumb">
+        HỒ SƠ > QUẢN LÝ LỚP HÀNH CHÍNH
+    </div>
+
+    @* * MODULE: THÔNG BÁO TRẠNG THÁI (TEMP DATA)
+     * Hiển thị thông báo phản hồi sau khi thực hiện các tác vụ như Thêm, Sửa hoặc Xóa.
+     * Thông báo này chỉ xuất hiện một lần duy nhất sau khi chuyển trang.
+     *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    <div class="action-bar">
+        @* Nút dẫn hướng tới trang khởi tạo Lớp mới *@
+        <a asp-action="Create" class="btn btn-success">+ Thêm Lớp Mới</a>
+    </div>
+
+    @* * MODULE: BỘ LỌC VÀ TÌM KIẾM (FILTER BAR)
+     * Sử dụng phương thức GET để các tham số lọc hiển thị trên URL, cho phép người dùng lưu link hoặc quay lại.
+     *@
+    <div class="filter-bar">
+        <form method="get" asp-action="Index">
+            @* Lọc danh sách theo Khoa: Tự động Submit form khi thay đổi lựa chọn (onchange) *@
+            <label>Khoa:</label>
+            <select name="facultyId" onchange="this.form.submit()">
+                <option value="">-- Tất cả các khoa --</option>
+                @if (ViewBag.Faculties != null)
+                {
+                    foreach (var faculty in ViewBag.Faculties)
+                    {
+                        <option value="@faculty.FacultyId">@faculty.FacultyName</option>
+                    }
+                }
+            </select>
+
+            @* Tìm kiếm tương đối: Áp dụng cho mã lớp hoặc tên lớp *@
+            <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" placeholder="🔍 Tìm mã lớp, tên lớp..." />
+            <button type="submit" class="btn btn-search">Tìm kiếm</button>
+        </form>
+    </div>
+
+    @* * BẢNG DỮ LIỆU (DATA TABLE)
+     * Hiển thị danh sách các lớp học được trả về từ Controller.
+     *@
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã Lớp</th>
+                <th>Tên Lớp</th>
+                <th>Khoa</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        @* Hiển thị mã lớp in đậm để nhấn mạnh khóa chính *@
+                        <td><strong>@item.ClassId</strong></td>
+                        <td>@item.ClassName</td>
+                        @* Sử dụng Navigation Property để lấy tên Khoa từ quan hệ khóa ngoại *@
+                        <td>@item.Faculty?.FacultyName</td>
+                        <td>
+                            @* Nút Sửa: Chuyển hướng tới Action Edit kèm ID của lớp *@
+                            <a asp-action="Edit" asp-route-id="@item.ClassId" class="btn btn-edit" title="Chỉnh sửa">✏️</a>
+                            
+                            @* * LOGIC PHỨC TẠP: XỬ LÝ XÓA DỮ LIỆU
+                             * Sử dụng Form POST thay vì thẻ <a> để đảm bảo an toàn.
+                             * AntiForgeryToken: Ngăn chặn các cuộc tấn công CSRF.
+                             * onclick: Xác nhận lại ý định của người dùng trước khi thực thi xóa.
+                             *@
+                            <form asp-action="Delete" asp-route-id="@item.ClassId" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-delete" title="Xóa lớp"
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa lớp @item.ClassName?')">
+                                    🗑️
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                @* Hiển thị khi danh sách trả về rỗng hoặc không có kết quả tìm kiếm phù hợp *@
+                <tr>
+                    <td colspan="4" style="text-align:center; padding: 20px;">Không có dữ liệu lớp học.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

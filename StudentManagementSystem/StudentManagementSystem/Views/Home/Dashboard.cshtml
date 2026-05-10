@@ -1,0 +1,97 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (Dashboard)
+ * Tổng quan: Trang giao diện chính sau khi đăng nhập, cung cấp cái nhìn tổng quan.
+ * Chức năng: Hiển thị các chỉ số quan trọng (KPIs) và biểu đồ phân tích dữ liệu.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard-container">
+    @* * MODULE: THẺ THỐNG KÊ NHANH (STATS GRID)
+     * Sử dụng ViewBag để truyền các giá trị đếm (count) trực tiếp từ SQL Controller.
+     * Cấu trúc Grid giúp các thẻ tự động căn chỉnh đều trên các kích thước màn hình.
+     *@
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Tổng Sinh Viên</div>
+            <div class="stat-value">@ViewBag.TotalStudents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Lớp Đang Mở</div>
+            <div class="stat-value">@ViewBag.TotalClasses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Giảng Viên</div>
+            @* Dữ liệu mẫu (Static data) cho các chỉ số ít biến động *@
+            <div class="stat-value">150</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Môn Học</div>
+            <div class="stat-value">85</div>
+        </div>
+    </div>
+
+    @* * MODULE: TRỰC QUAN HÓA DỮ LIỆU (DATA VISUALIZATION)
+     * Khu vực dành cho biểu đồ. Sử dụng thẻ <canvas> làm nơi vẽ đồ thị.
+     *@
+    <div class="chart-container">
+        <h3>BIỂU ĐỒ SINH VIÊN THEO KHOA</h3>
+        <canvas id="facultyChart"></canvas>
+    </div>
+
+    @* * MODULE: TRUNG TÂM THÔNG BÁO (NOTIFICATION CENTER)
+     * Hiển thị các cảnh báo hệ thống hoặc nhắc nhở công việc quan trọng.
+     *@
+    <div class="notifications">
+        <h3>THÔNG BÁO MỚI</h3>
+        <div class="notification success">
+            <span>🟢</span> Hệ thống đã sao lưu dữ liệu thành công.
+        </div>
+        <div class="notification warning">
+            <span>🟡</span> 15 lớp học phần chưa có giảng viên phụ trách.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Nhúng thư viện Chart.js từ CDN để xử lý biểu đồ *@
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        /* * LOGIC PHỨC TẠP: TÍCH HỢP DỮ LIỆU SERVER VÀO JAVASCRIPT
+        * 1. Lấy context của canvas để bắt đầu vẽ.
+        * 2. Html.Raw: Cho phép truyền chuỗi JSON từ C# trực tiếp vào JavaScript
+        * mà không bị mã hóa các ký tự đặc biệt (ví dụ: ngoặc vuông, phẩy).
+        * 3. Chart type: 'bar' - Biểu đồ dạng cột.
+        */
+        var ctx = document.getElementById('facultyChart').getContext('2d');
+        var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+        // Tên các Khoa (Labels) nhận từ ViewBag
+        labels: @Html.Raw(ViewBag.FacultyLabels),
+        datasets: [{
+        label: 'Số sinh viên',
+        // Số lượng sinh viên tương ứng (Data)
+        data: @Html.Raw(ViewBag.FacultyData),
+        backgroundColor: '#0B3C5D', // Màu sắc thương hiệu của hệ thống
+        borderWidth: 1
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+        y: {
+        beginAtZero: true
+        }
+        }
+        }
+        });
+    </script>
+}

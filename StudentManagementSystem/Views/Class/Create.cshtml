@@ -1,0 +1,67 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Create.cshtml
+ * Tổng quan: Giao diện biểu mẫu (Form) để khởi tạo một Lớp hành chính mới.
+ * Chức năng: Nhận dữ liệu từ người dùng và gửi về hàm Create [POST] trong Controller.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Class
+
+@{
+    ViewData["Title"] = "Thêm Lớp Mới";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng phụ giúp người dùng xác định vị trí trong hệ thống *@
+    <div class="breadcrumb">HỒ SƠ > QUẢN LÝ LỚP > THÊM MỚI</div>
+    
+    <div class="form-container" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        
+        @* * FORM THÊM MỚI:
+         * asp-action="Create": Gửi dữ liệu đến Action Create trong ClassController.
+         * method="post": Phương thức gửi tin an toàn cho việc tạo mới dữ liệu.
+         *@
+        <form asp-action="Create" method="post">
+            
+            @* Trường nhập Mã Lớp (Khóa chính) *@
+            <div class="form-group">
+                <label>Mã Lớp:</label>
+                @* asp-for: Liên kết trực tiếp thuộc tính ClassId của Model vào ô nhập liệu *@
+                <input asp-for="ClassId" class="form-control" placeholder="VD: CNTT18-06" />
+                @* asp-validation-for: Hiển thị lỗi nếu người dùng nhập sai quy định (Validation) *@
+                <span asp-validation-for="ClassId" class="text-danger"></span>
+            </div>
+
+            @* Trường nhập Tên Lớp *@
+            <div class="form-group">
+                <label>Tên Lớp:</label>
+                <input asp-for="ClassName" class="form-control" placeholder="Nhập tên lớp..." />
+                <span asp-validation-for="ClassName" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: CHỌN KHOA QUẢN LÝ
+             * asp-items: Sử dụng SelectList để đổ dữ liệu từ ViewBag.Faculties vào Dropdown.
+             * Dữ liệu được truyền từ Controller qua ViewBag với cặp (Giá trị: FacultyId, Hiển thị: FacultyName).
+             *@
+            <div class="form-group">
+                <label>Khoa:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                    <option value="">-- Chọn Khoa --</option>
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            @* Thanh lệnh điều hướng cuối biểu mẫu *@
+            <div class="action-bar-bottom" style="margin-top: 20px; text-align: right;">
+                @* Nút Hủy: Quay lại trang danh sách lớp học *@
+                <a asp-action="Index" class="btn btn-cancel">Hủy</a>
+                
+                @* Nút Lưu: Thực thi lệnh Submit Form *@
+                <button type="submit" class="btn btn-success">Lưu Lớp</button>
+            </div>
+        </form>
+    </div>
+</div>

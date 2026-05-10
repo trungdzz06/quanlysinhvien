@@ -1,0 +1,125 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (CourseClass)
+ * Tổng quan: Giao diện danh sách quản lý các Lớp học phần (Course Classes).
+ * Chức năng: Tra cứu, lọc theo học kỳ và cung cấp các lối tắt quản lý (CRUD).
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model IEnumerable<StudentManagementSystem.Models.CourseClass>
+
+@{
+    ViewData["Title"] = "Quản Lý Lớp Học Phần";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng (Breadcrumb) giúp xác định phân cấp chức năng *@
+    <div class="breadcrumb">
+        ĐÀO TẠO > QUẢN LÝ LỚP HỌC PHẦN
+    </div>
+
+    @* MODULE: HÀNH ĐỘNG NHANH *@
+    <div class="action-bar">
+        @* Tag Helper asp-action dẫn đến trang tạo mới lớp học phần *@
+        <a asp-action="Create" class="btn btn-success">+ Mở Lớp Học Phần Mới</a>
+    </div>
+
+    @* * MODULE: BỘ LỌC DỮ LIỆU (FILTER BAR)
+     * Sử dụng phương thức GET để các tham số lọc được lưu trên URL, 
+     * hỗ trợ việc tải lại trang hoặc chia sẻ link tìm kiếm.
+     *@
+    <div class="filter-bar">
+        <form method="get">
+            <label>Chọn Học Kỳ:</label>
+            @* onchange="this.form.submit()": Tự động tải lại danh sách khi người dùng chọn học kỳ *@
+            <select name="semester" onchange="this.form.submit()">
+                <option value="">Tất cả</option>
+                @if (ViewBag.Semesters != null)
+                {
+                    foreach (var sem in ViewBag.Semesters)
+                    {
+                        <option value="@sem">@sem</option>
+                    }
+                }
+            </select>
+
+            @* Tìm kiếm theo từ khóa: Mã lớp hoặc tên môn học *@
+            <input type="text" name="searchTerm" placeholder="🔍 Tìm lớp, môn học..." value="@Context.Request.Query["searchTerm"]" />
+            <button type="submit" class="btn btn-search">Tìm kiếm</button>
+        </form>
+    </div>
+
+    @* * BẢNG DỮ LIỆU (DATA TABLE)
+     * Hiển thị thông tin tổng quan của các lớp học phần đang vận hành.
+     *@
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã Lớp</th>
+                <th>Môn Học</th>
+                <th>Giảng Viên</th>
+                <th>Sĩ Số</th>
+                <th>Trạng Thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td><strong>@item.CourseClassId</strong></td>
+                        @* Sử dụng Navigation Property (?.Subject) để truy xuất dữ liệu từ bảng liên kết *@
+                        <td>@item.Subject?.SubjectName</td>
+                        <td>@item.Teacher?.FullName</td>
+                        <td>@item.CurrentStudents/@item.MaxStudents</td>
+                        <td>
+                            @* * MODULE: HIỂN THỊ TRẠNG THÁI TRỰC QUAN
+                             * Sử dụng các cấu trúc điều kiện để gán màu sắc tương ứng với trạng thái lớp.
+                             *@
+                            @if (item.Status == "Mở đăng ký")
+                            {
+                                <span class="status-active">🟢 @item.Status</span>
+                            }
+                            else if (item.Status == "Đã đầy")
+                            {
+                                <span class="status-full">🔴 @item.Status</span>
+                            }
+                            else
+                            {
+                                <span class="status-pending">🟡 @item.Status</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                @* Link điều hướng đến trang chỉnh sửa kèm theo ID cụ thể *@
+                                <a asp-action="Edit" asp-route-id="@item.CourseClassId" class="btn btn-edit" title="Chỉnh sửa">✏️</a>
+                                @* Nút chức năng mở rộng (như xem danh sách sinh viên, cấu hình lớp) *@
+                                <button class="btn btn-info" title="Cấu hình nâng cao">⚙️</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                @* Thông báo khi không có dữ liệu phù hợp với bộ lọc *@
+                <tr>
+                    <td colspan="6" style="text-align:center; padding: 20px; color: #888;">
+                        Không tìm thấy dữ liệu lớp học phần.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    /* CSS nội bộ hỗ trợ các trạng thái hiển thị */
+    .status-active { color: #28a745; font-weight: bold; }
+    .status-full { color: #dc3545; font-weight: bold; }
+    .status-pending { color: #ffc107; font-weight: bold; }
+    .btn-group .btn { margin-right: 5px; }
+</style>

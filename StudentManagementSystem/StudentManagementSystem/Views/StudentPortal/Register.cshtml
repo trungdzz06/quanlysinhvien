@@ -1,0 +1,155 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Register.cshtml (StudentPortal)
+ * Tổng quan: Giao diện đăng ký học phần (tín chỉ) dành cho sinh viên.
+ * Chức năng: 
+ * - Tra cứu và lựa chọn các lớp học phần đang mở trong học kỳ hiện tại.
+ * - Hiển thị danh sách lớp tạm tính và cho phép hủy đăng ký nhanh.
+ * - Kiểm tra điều kiện sĩ số thời gian thực.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@{
+    ViewData["Title"] = "Đăng Ký Tín Chỉ";
+}
+
+<div class="page-container">
+    @* Thanh tiêu đề hiển thị học kỳ đăng ký hiện tại lấy từ Server *@
+    <div class="breadcrumb">
+        ĐĂNG KÝ HỌC PHẦN (TÍN CHỈ) - @ViewBag.Semester
+    </div>
+
+    @* MODULE: TÌM KIẾM NHANH (CLIENT-SIDE FILTER) *@
+    <div class="search-bar" style="margin-bottom: 20px;">
+        <input type="text" class="form-control" placeholder="🔍 Nhập mã môn học hoặc tên môn để lọc nhanh..." id="searchCourse" />
+    </div>
+
+    @* * CẤU TRÚC ĐĂNG KÝ (TWO-COLUMN LAYOUT)
+     * Sử dụng Flexbox hoặc Grid để phân tách khu vực đăng ký và khu vực kết quả tạm tính.
+     *@
+    <div class="course-registration" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        
+        @* 1. KHU VỰC DANH SÁCH LỚP HỌC PHẦN ĐANG MỞ *@
+        <div class="available-courses">
+            <h3 style="color: #0b3c5d; border-bottom: 2px solid #0b3c5d; padding-bottom: 10px;">DANH SÁCH LỚP ĐANG MỞ</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th width="50">Chọn</th>
+                        <th>Mã Môn</th>
+                        <th>Tên Môn</th>
+                        <th>Lịch Học</th>
+                        <th>Sĩ Số</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.AvailableClasses != null)
+                    {
+                        foreach (var course in ViewBag.AvailableClasses)
+                        {
+                            <tr>
+                                <td><input type="checkbox" /></td>
+                                <td>@course.Subject.SubjectCode</td>
+                                <td>@course.Subject.SubjectName</td>
+                                <td><small>@course.Schedule</small></td>
+                                <td>
+                                    @* Hiển thị tỷ lệ sĩ số giúp sinh viên cân nhắc độ ưu tiên *@
+                                    <span class="@(course.CurrentStudents >= course.MaxStudents ? "text-danger" : "")">
+                                        @course.CurrentStudents/@course.MaxStudents
+                                    </span>
+                                </td>
+                                <td>
+                                    @* * LOGIC KIỂM TRA ĐIỀU KIỆN ĐĂNG KÝ
+                                     * Nếu lớp chưa đầy: Hiển thị form đăng ký.
+                                     * Nếu lớp đã đầy: Vô hiệu hóa (disable) nút bấm.
+                                     *@
+                                    @if (course.CurrentStudents < course.MaxStudents)
+                                    {
+                                        <form asp-action="RegisterCourse" method="post" style="display:inline;">
+                                            <input type="hidden" name="courseClassId" value="@course.CourseClassId" />
+                                            <input type="hidden" name="semester" value="@ViewBag.Semester" />
+                                            @Html.AntiForgeryToken() @* Bảo mật tránh tấn công giả mạo đăng ký *@
+                                            <button type="submit" class="btn btn-primary btn-sm">Đăng ký</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;">Đã đầy</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* 2. KHU VỰC QUẢN LÝ LỚP ĐÃ ĐĂNG KÝ (TẠM TÍNH) *@
+        <div class="registered-courses" style="background: #fdfdfd; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <h3 style="font-size: 1.1em;">DANH SÁCH TẠM CHỌN</h3>
+            <p class="text-muted" style="font-size: 0.9em;">
+                <strong>Tổng số:</strong> @ViewBag.TotalCredits tín chỉ
+            </p>
+            
+            <ul class="registration-list" style="list-style: none; padding: 0;">
+                @if (ViewBag.RegisteredClasses != null && ViewBag.RegisteredClasses.Count > 0)
+                {
+                    int index = 1;
+                    foreach (var reg in ViewBag.RegisteredClasses)
+                    {
+                        <li style="padding: 10px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 0.9em;">
+                                <strong>@index. @reg.CourseClass.Subject.SubjectName</strong><br />
+                                <small>@reg.CourseClass.Subject.Credits tín chỉ | @reg.CourseClass.Subject.SubjectCode</small>
+                            </div>
+                            
+                            @* Nút Hủy đăng ký nhanh *@
+                            <form asp-action="CancelRegistration" method="post" style="display:inline;">
+                                <input type="hidden" name="registrationId" value="@reg.RegistrationId" />
+                                <input type="hidden" name="semester" value="@ViewBag.Semester" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link" style="color: red; text-decoration: none;"
+                                        onclick="return confirm('Xác nhận hủy đăng ký lớp này?')">
+                                    ❌
+                                </button>
+                            </form>
+                        </li>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <li style="color: #888; font-style: italic; padding-top: 10px;">Chưa có lớp nào được chọn.</li>
+                }
+            </ul>
+
+            @* Chỉ hiển thị nút chốt nếu đã có ít nhất 1 môn được đăng ký *@
+            @if (ViewBag.RegisteredClasses != null && ViewBag.RegisteredClasses.Count > 0)
+            {
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-danger btn-block" style="width: 100%; font-weight: bold;">CHỐT ĐĂNG KÝ</button>
+                    <p style="font-size: 0.8em; color: #666; margin-top: 10px; text-align: center;">
+                        ⚠️ Lưu ý: Sau khi chốt, mọi thay đổi phải liên hệ Phòng Đào tạo.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JS đơn giản hỗ trợ lọc danh sách lớp ngay tại Client để tăng tốc độ tìm kiếm
+        document.getElementById('searchCourse').addEventListener('keyup', function() {
+            let value = this.value.toLowerCase();
+            let rows = document.querySelectorAll(".available-courses tbody tr");
+            
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(value) ? "" : "none";
+            });
+        });
+    </script>
+}

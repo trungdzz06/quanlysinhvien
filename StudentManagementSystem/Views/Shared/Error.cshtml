@@ -1,0 +1,45 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Error.cshtml
+ * Tổng quan: Giao diện thông báo lỗi hệ thống tập trung.
+ * Chức năng: 
+ * - Hiển thị mã định danh yêu cầu (Request ID) để tra cứu nhật ký (log).
+ * - Cung cấp hướng dẫn cấu hình môi trường cho lập trình viên.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Lỗi Hệ Thống";
+}
+
+<h1 class="text-danger">Lỗi.</h1>
+<h2 class="text-danger">Đã xảy ra sự cố trong quá trình xử lý yêu cầu của bạn.</h2>
+
+@* * MODULE: TRUY VẾT LỖI (ERROR TRACING)
+ * ShowRequestId: Kiểm tra xem có mã ID yêu cầu hay không.
+ * RequestId: Mã định danh duy nhất giúp lập trình viên tìm đúng dòng lỗi trong file Log của máy chủ.
+ *@
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Mã yêu cầu (Request ID):</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<hr />
+
+<h3>Chế độ Phát triển (Development Mode)</h3>
+<p>
+    Việc chuyển đổi sang môi trường <strong>Development</strong> sẽ hiển thị thông tin chi tiết hơn về các ngoại lệ (exceptions) đã xảy ra.
+</p>
+
+@* * CẢNH BÁO BẢO MẬT:
+ * Tuyệt đối không bật chế độ Development trên các ứng dụng đã triển khai thực tế.
+ * Điều này có thể làm lộ thông tin nhạy cảm (như cấu trúc thư mục, biến môi trường) cho người dùng cuối.
+ *@
+<p>
+    <strong>Môi trường Development không nên được bật cho các ứng dụng đã triển khai.</strong>
+    Để gỡ lỗi cục bộ, hãy kích hoạt môi trường <strong>Development</strong> bằng cách thiết lập biến môi trường <code>ASPNETCORE_ENVIRONMENT</code> thành <code>Development</code> và khởi động lại ứng dụng.
+</p>

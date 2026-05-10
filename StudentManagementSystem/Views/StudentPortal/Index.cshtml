@@ -1,0 +1,135 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (StudentPortal)
+ * Tổng quan: Giao diện chính của Dashboard dành riêng cho đối tượng Sinh viên.
+ * Chức năng: 
+ * - Hiển thị thông tin định danh cá nhân nhanh.
+ * - Trực quan hóa kết quả học tập tích lũy (GPA, Tín chỉ).
+ * - Cập nhật các thông báo mới nhất từ Nhà trường.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Cổng Sinh Viên";
+    Layout = "_Layout";
+}
+
+<div class="page-container">
+    @* * MODULE: THÔNG TIN CÁ NHÂN NHANH (PROFILE HEADER)
+     * Hiển thị ảnh đại diện và các thông tin cơ bản để sinh viên xác nhận quyền sở hữu tài khoản.
+     *@
+    <div class="student-profile-header">
+        <div class="profile-image-large">👤</div>
+        <div class="profile-info">
+            <h2>@Model.FullName</h2>
+            <p><strong>Mã số sinh viên:</strong> @Model.MSSV</p>
+            <p><strong>Lớp hành chính:</strong> @(Model.Class?.ClassName ?? "Chưa cập nhật")</p>
+        </div>
+    </div>
+
+    <div class="student-dashboard">
+        @* * MODULE: KẾT QUẢ HỌC TẬP TỔNG QUAN
+         * Sử dụng ViewBag để truyền các giá trị đã qua tính toán từ Controller.
+         * Giúp sinh viên theo dõi tiến độ tốt nghiệp và xếp loại học lực.
+         *@
+        <div class="dashboard-section">
+            <h3>KẾT QUẢ HỌC TẬP TỔNG QUAN</h3>
+            <div class="gpa-overview">
+                @* Hiển thị điểm TB hệ 10 - Định dạng 1 chữ số thập phân *@
+                <div class="gpa-item">
+                    <label>Điểm TB Hệ 10:</label>
+                    <span class="gpa-value">@ViewBag.GPA10.ToString("F1")</span>
+                </div>
+                @* Hiển thị điểm tích lũy hệ 4 (Dùng để xếp loại bằng tốt nghiệp) *@
+                <div class="gpa-item">
+                    <label>Điểm Tích Lũy (Hệ 4):</label>
+                    <span class="gpa-value">@ViewBag.GPA4.ToString("F1")</span>
+                </div>
+                @* Hiển thị tiến độ hoàn thành chương trình đào tạo *@
+                <div class="gpa-item">
+                    <label>Tổng tín chỉ:</label>
+                    <span class="gpa-value">@ViewBag.TotalCredits/130</span>
+                </div>
+                @* Xếp loại học lực (Xuất sắc, Giỏi, Khá, Trung bình,...) *@
+                <div class="gpa-item">
+                    <label>Xếp loại:</label>
+                    <span class="classification">@ViewBag.Classification</span>
+                </div>
+            </div>
+        </div>
+
+        @* * MODULE: TIN TỨC & THÔNG BÁO (NOTIFICATIONS)
+         * Nơi hiển thị các mốc thời gian quan trọng về đăng ký tín chỉ, đóng học phí hoặc lịch thi.
+         *@
+        <div class="dashboard-section">
+            <h3>THÔNG BÁO TỪ PHÒNG ĐÀO TẠO</h3>
+            <div class="notification-list">
+                @* Thông báo về đăng ký tín chỉ *@
+                <div class="notification-item">
+                    <span class="notification-icon">📢</span>
+                    <div class="notification-content">
+                        <strong>[01/09/2024]</strong> Lịch đăng ký tín chỉ học kỳ 1 năm học 2024-2025 chính thức bắt đầu từ ngày 15/09.
+                    </div>
+                </div>
+                @* Thông báo về kết quả học tập *@
+                <div class="notification-item">
+                    <span class="notification-icon">📢</span>
+                    <div class="notification-content">
+                        <strong>[15/08/2024]</strong> Đã có điểm thi học kỳ phụ (Học kỳ Summer). Sinh viên truy cập mục "Xem Điểm" để kiểm tra.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS nội bộ dành riêng cho Cổng Sinh Viên */
+    .student-profile-header {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .profile-image-large {
+        font-size: 60px;
+        margin-right: 20px;
+        background: #f0f2f5;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .gpa-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        background: #f8fbff;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e1e8f0;
+    }
+
+    .gpa-item label { display: block; color: #666; font-size: 0.9em; }
+    .gpa-value { font-size: 1.5em; font-weight: bold; color: #0b3c5d; }
+    .classification { font-weight: bold; color: #28a745; font-size: 1.2em; }
+
+    .notification-item {
+        display: flex;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        align-items: flex-start;
+    }
+
+    .notification-icon { margin-right: 15px; font-size: 1.2em; }
+    .notification-content { font-size: 0.95em; color: #333; }
+</style>

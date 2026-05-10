@@ -1,0 +1,179 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (CourseClass)
+ * Tổng quan: Giao diện danh sách quản lý các Lớp học phần (LHP).
+ * Chức năng: Tìm kiếm, lọc theo học kỳ, hiển thị trực quan sĩ số và trạng thái lớp.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model IEnumerable<StudentManagementSystem.Models.CourseClass>
+
+@{
+    ViewData["Title"] = "Quản Lý Lớp Học Phần";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng phân cấp (Breadcrumb) *@
+    <div class="breadcrumb">
+        ĐÀO TẠO > QUẢN LÝ LỚP HỌC PHẦN
+    </div>
+
+    @* Hiển thị thông báo phản hồi từ hệ thống (TempData) *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    <div class="action-bar">
+        <a asp-action="Create" class="btn btn-success">+ Mở Lớp Học Phần Mới</a>
+        <button class="btn btn-primary">📥 Xuất TKB</button>
+    </div>
+
+    @* * MODULE: BỘ LỌC VÀ TÌM KIẾM
+     * Cho phép lọc dữ liệu theo Học kỳ và tìm kiếm đa năng theo Môn học hoặc Giảng viên.
+     *@
+    <div class="filter-bar">
+        <form method="get" asp-action="Index">
+            <label>Học Kỳ:</label>
+            <select name="semester" onchange="this.form.submit()">
+                <option value="">-- Tất cả học kỳ --</option>
+                @if (ViewBag.Semesters != null)
+                {
+                    foreach (var sem in ViewBag.Semesters)
+                    {
+                        @* Giữ lại trạng thái đã chọn sau khi trang tải lại *@
+                        <!option value="@sem" @(Context.Request.Query["semester"] == sem ? "selected" : "")>@sem</!option>
+                    }
+                }
+            </select>
+
+            <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" placeholder="🔍 Tìm lớp, môn học, giảng viên..." />
+            <button type="submit" class="btn btn-search">Tìm kiếm</button>
+            <a asp-action="Index" class="btn btn-cancel" style="text-decoration:none;">Làm mới</a>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã Lớp HP</th>
+                <th>Môn Học</th>
+                <th>Giảng Viên</th>
+                <th>Lịch Học</th>
+                <th>Sĩ Số</th>
+                <th>Trạng Thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td><strong>@item.CourseClassId</strong></td>
+                        <td>
+                            @* Hiển thị tên môn học kèm mã môn học nhỏ phía dưới *@
+                            <div>@item.Subject?.SubjectName</div>
+                            <small class="text-muted">@item.SubjectCode</small>
+                        </td>
+                        <td>@item.Teacher?.FullName</td>
+                        <td>
+                            @* Hiển thị lịch học với Style Badge chuyên nghiệp *@
+                            <span class="badge-schedule">📅 @(string.IsNullOrEmpty(item.Schedule) ? "Chưa xếp lịch" : item.Schedule)</span>
+                        </td>
+                        <td>
+                            @* * LOGIC PHỨC TẠP: THANH TIẾN ĐỘ SĨ SỐ (CAPACITY BAR)
+                             * Tính toán tỷ lệ phần trăm sinh viên đã đăng ký so với tối đa.
+                             * Tự động đổi màu thanh tiến độ sang đỏ nếu lớp đã đầy (>= 100%).
+                             *@
+                            <div class="capacity-bar">
+                                <span>@item.CurrentStudents/@item.MaxStudents</span>
+                                @{
+                                    var percent = (item.MaxStudents > 0) ? (item.CurrentStudents * 100 / item.MaxStudents) : 0;
+                                }
+                                <div class="progress" style="height: 5px; width: 100px; background: #eee; border-radius: 3px; overflow: hidden;">
+                                    <div class="progress-bar" style="width: @percent%; height: 100%; background: @(percent >= 100 ? "#ff4d4d" : "#28a745");"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            @* * MODULE: TRẠNG THÁI VẬN HÀNH
+                             * Sử dụng Switch-Case để hiển thị Icon và màu sắc tương ứng với trạng thái lớp.
+                             *@
+                            @switch (item.Status)
+                            {
+                                case "Mở đăng ký":
+                                    <span class="status-active">🟢 @item.Status</span>
+                                    break;
+                                case "Đã đầy":
+                                    <span class="status-full">🔴 @item.Status</span>
+                                    break;
+                                case "Chờ duyệt":
+                                    <span class="status-pending">🟡 @item.Status</span>
+                                    break;
+                                default:
+                                    <span class="status-other">⚪ @item.Status</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a asp-action="Edit" asp-route-id="@item.CourseClassId" class="btn btn-edit" title="Chỉnh sửa">✏️</a>
+                                <button class="btn btn-info" title="Danh sách sinh viên">👥</button>
+                                
+                                @* * XỬ LÝ XÓA AN TOÀN:
+                                 * Sử dụng Anti-Forgery Token và xác nhận JavaScript trước khi thực hiện.
+                                 *@
+                                <form asp-action="Delete" asp-route-id="@item.CourseClassId" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-delete" style="background:none; border:none; cursor:pointer;" 
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa lớp học phần này?')">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 30px; color: #888;">
+                        Không tìm thấy lớp học phần nào phù hợp với điều kiện lọc.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    /* CSS nội bộ tối ưu cho giao diện quản lý đào tạo */
+    .badge-schedule {
+        background: #f0f7ff;
+        color: #0056b3;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        border: 1px solid #d1e7ff;
+    }
+
+    .capacity-bar span {
+        display: block;
+        font-size: 0.9em;
+        margin-bottom: 3px;
+    }
+
+    .status-full { color: #d9534f; font-weight: bold; }
+    .status-active { color: #5cb85c; font-weight: bold; }
+    .status-pending { color: #f0ad4e; font-weight: bold; }
+    
+    .text-muted { color: #6c757d; font-size: 0.8em; }
+
+    .btn-group .btn { margin-right: 5px; }
+</style>

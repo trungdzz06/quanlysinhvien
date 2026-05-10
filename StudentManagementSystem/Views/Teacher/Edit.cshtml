@@ -1,0 +1,87 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Edit.cshtml (Teacher)
+ * Tổng quan: Giao diện biểu mẫu cập nhật thông tin hồ sơ Giảng viên.
+ * Chức năng: 
+ * - Cho phép thay đổi thông tin cá nhân, đơn vị công tác và trạng thái làm việc.
+ * - Bảo vệ mã định danh (TeacherId) để duy trì tính nhất quán của cơ sở dữ liệu.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Teacher
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Giảng Viên";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng hỗ trợ quản trị viên xác định ngữ cảnh thao tác *@
+    <div class="breadcrumb">NHÂN SỰ > QUẢN LÝ GIẢNG VIÊN > CẬP NHẬT</div>
+
+    <div class="form-card" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        @* Form gửi dữ liệu cập nhật theo phương thức POST *@
+        <form asp-action="Edit" method="post">
+            
+            @* * LOGIC BẢO MẬT: QUẢN LÝ KHÓA CHÍNH
+             * Sử dụng Hidden Input để gửi TeacherId về Controller khi Submit.
+             * Đây là cơ sở để Entity Framework thực hiện lệnh UPDATE đúng bản ghi trong SQL.
+             *@
+            <input type="hidden" asp-for="TeacherId" />
+
+            <div class="form-group">
+                @* Hiển thị mã giảng viên nhưng khóa quyền chỉnh sửa để tránh sai lệch dữ liệu liên kết *@
+                <label>Mã Giảng Viên (Cố định):</label>
+                <input class="form-control" value="@Model.TeacherId" disabled style="background-color: #f8f9fa; cursor: not-allowed;" />
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Họ và Tên:</label>
+                <input asp-for="FullName" class="form-control" required placeholder="Nhập họ tên mới..." />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                @* Cho phép điều chuyển giảng viên giữa các Khoa chuyên môn *@
+                <label>Khoa Trực Thuộc:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Email Nhà Trường:</label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Số Điện Thoại:</label>
+                <input asp-for="Phone" type="tel" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                @* Quản lý trạng thái công tác để lọc danh sách giảng viên đang tham gia giảng dạy *@
+                <label>Trạng Thái:</label>
+                <select asp-for="Status" class="form-control">
+                    <option value="Active">Đang công tác</option>
+                    <option value="Inactive">Đã nghỉ / Tạm hoãn</option>
+                </select>
+            </div>
+
+            @* Thanh lệnh điều hướng và xác nhận *@
+            <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                <a asp-action="Index" class="btn btn-cancel">Quay lại</a>
+                <button type="submit" class="btn btn-primary">Lưu Cập Nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @* Kích hoạt kiểm tra tính hợp lệ dữ liệu tại Client (Client-side Validation) *@
+    <partial name="_ValidationScriptsPartial" />
+}

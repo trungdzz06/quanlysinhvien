@@ -1,0 +1,28 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: _ValidationScriptsPartial.cshtml
+ * Tổng quan: Thành phần nhúng các thư viện JavaScript hỗ trợ kiểm tra dữ liệu.
+ * Chức năng: 
+ * - Tự động hóa việc kiểm tra tính hợp lệ của Form dựa trên các Data Annotations ở Model.
+ * - Hiển thị thông báo lỗi ngay lập tức mà không cần tải lại trang (Postback).
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@* * 1. JQUERY VALIDATION: 
+ * Thư viện gốc cung cấp các hàm logic cơ bản để kiểm tra dữ liệu (như check trống, định dạng email, độ dài chuỗi). 
+ *@
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+
+@* * 2. JQUERY VALIDATION UNOBTRUSIVE: 
+ * Đây là thư viện "cầu nối" của Microsoft. Nó đọc các thuộc tính data-val từ HTML (được sinh ra bởi các Tag Helpers như asp-for)
+ * và kết nối chúng với thư viện jQuery Validation phía trên một cách tự động. 
+ *@
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
+@* * HƯỚNG DẪN SỬ DỤNG:
+ * Trong các View có chứa Form (như Create.cshtml hoặc Edit.cshtml), hãy thêm đoạn mã sau vào cuối tệp:
+ * * @section Scripts {
+ * <partial name="_ValidationScriptsPartial" />
+ * }
+ *@

@@ -1,0 +1,180 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Entry.cshtml (Grades)
+ * Tổng quan: Giao diện bảng nhập điểm học phần tập trung cho toàn bộ lớp học.
+ * Chức năng: Cho phép nhập điểm thành phần, tự động tính tổng kết và quy đổi điểm chữ.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model List<StudentManagementSystem.Models.Student>
+@{
+    ViewData["Title"] = "Nhập Điểm Học Phần";
+}
+
+<div class="page-container">
+    <div class="breadcrumb">ĐIỂM SỐ > NHẬP ĐIỂM HỌC PHẦN</div>
+
+    @* Hiển thị thông báo sau khi lưu dữ liệu thành công *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">✅ @TempData["Success"]</div>
+    }
+
+    @* * MODULE: BỘ LỌC ĐỐI TƯỢNG NHẬP ĐIỂM
+     * Giảng viên chọn Lớp và Môn học để hệ thống tải danh sách sinh viên tương ứng.
+     *@
+    <div class="filter-bar">
+        <form method="get" asp-action="Entry">
+            <select name="classId" onchange="this.form.submit()">
+                <option value="">-- Chọn lớp --</option>
+                @if (ViewBag.Classes != null)
+                {
+                    foreach (var cls in ViewBag.Classes)
+                    {
+                        <!option value="@cls.ClassId" @(ViewBag.SelectedClass == cls.ClassId ? "selected" : "")>@cls.ClassName</!option>
+                    }
+                }
+            </select>
+
+            <select name="subjectCode" onchange="this.form.submit()">
+                <option value="">-- Chọn môn học --</option>
+                @if (ViewBag.Subjects != null)
+                {
+                    foreach (var sub in ViewBag.Subjects)
+                    {
+                        <!option value="@sub.SubjectCode" @(ViewBag.SelectedSubject == sub.SubjectCode ? "selected" : "")>@sub.SubjectName</!option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn btn-search">Lấy danh sách</button>
+        </form>
+    </div>
+
+    @* * MODULE: BẢNG NHẬP ĐIỂM TẬP TRUNG (BULK ENTRY)
+     * Toàn bộ bảng điểm nằm trong một Form duy nhất để lưu hàng loạt (Save All).
+     *@
+    <form asp-action="Save" method="post" id="gradeForm">
+        @* Các trường ẩn để gửi thông tin định danh môn học và lớp về Controller *@
+        <input type="hidden" name="subjectCode" value="@ViewBag.SelectedSubject" />
+        <input type="hidden" name="classId" value="@ViewBag.SelectedClass" />
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>MSSV</th>
+                    <th>Họ Tên</th>
+                    <th width="120">Chuyên Cần (10%)</th>
+                    <th width="120">Giữa Kỳ (30%)</th>
+                    <th width="120">Cuối Kỳ (60%)</th>
+                    <th width="100">Tổng Kết</th>
+                    <th width="80">Loại</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
+                {
+                    for (int i = 0; i < Model.Count; i++)
+                    {
+                        @* Tìm kiếm bản ghi điểm đã tồn tại cho môn học này (nếu có) *@
+                        var grade = Model[i].Grades?.FirstOrDefault(g => g.SubjectCode == ViewBag.SelectedSubject) ?? new Grade();
+                        
+                        <tr class="grade-row">
+                            <td>@Model[i].MSSV</td>
+                            <td>@Model[i].FullName</td>
+                            <td>
+                                @* * LOGIC PHỨC TẠP: MODEL BINDING ARRAY
+                                 * Sử dụng chỉ số [i] để định danh phần tử trong danh sách gửi về.
+                                 * InvariantCulture giúp xử lý dấu phẩy/chấm thập phân thống nhất.
+                                 *@
+                                <input type="hidden" name="grades[@i].StudentId" value="@Model[i].MSSV" />
+                                
+                                <input type="number" name="grades[@i].Attendance"
+                                       value="@grade.Attendance.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                       min="0" max="10" step="0.1" class="grade-input attendance" />
+                            </td>
+                            <td>
+                                <input type="number" name="grades[@i].Midterm"
+                                       value="@grade.Midterm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                       min="0" max="10" step="0.1" class="grade-input midterm" />
+                            </td>
+                            <td>
+                                <input type="number" name="grades[@i].Final"
+                                       value="@grade.Final.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                       min="0" max="10" step="0.1" class="grade-input final" />
+                            </td>
+                            <td class="total-score-cell" style="font-weight:bold; color: #0b3c5d;">
+                                @grade.TotalScore.ToString("0.##")
+                            </td>
+                            <td class="letter-grade-cell" style="font-weight:bold;">
+                                @grade.LetterGrade
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedSubject))
+        {
+            <div class="action-bar-bottom" style="margin-top: 20px; text-align: right;">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Bạn có chắc chắn muốn lưu toàn bộ bảng điểm này?');">
+                    💾 Lưu Toàn Bộ Điểm
+                </button>
+            </div>
+        }
+    </form>
+</div>
+
+@section Scripts {
+    @* * LOGIC PHỨC TẠP: XỬ LÝ CLIENT-SIDE (JAVASCRIPT)
+     * Tính toán điểm tổng kết ngay lập tức khi người dùng vừa nhập số vào ô điểm thành phần.
+     * Tự động quy đổi điểm chữ và cảnh báo đỏ nếu học lực là 'F' (trượt môn).
+     *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const gradeInputs = document.querySelectorAll('.grade-input');
+            
+            gradeInputs.forEach(input => {
+                input.addEventListener('input', function () {
+                    const row = this.closest('.grade-row');
+                    calculateRow(row);
+                });
+            });
+
+            function calculateRow(row) {
+                // Lấy giá trị từ các ô input, mặc định là 0 nếu để trống
+                const att = parseFloat(row.querySelector('.attendance').value) || 0;
+                const mid = parseFloat(row.querySelector('.midterm').value) || 0;
+                const fin = parseFloat(row.querySelector('.final').value) || 0;
+
+                // Tính toán theo trọng số: 10% - 30% - 60%
+                let total = (att * 0.1) + (mid * 0.3) + (fin * 0.6);
+                total = Math.round(total * 100) / 100; // Làm tròn tới 2 chữ số thập phân
+
+                // Cập nhật kết quả lên giao diện
+                row.querySelector('.total-score-cell').textContent = total.toFixed(2);
+
+                // Quy tắc xếp loại điểm chữ (Letter Grade)
+                let letter = "F";
+                if (total >= 9.0) letter = "A";
+                else if (total >= 8.5) letter = "B+";
+                else if (total >= 8.0) letter = "B";
+                else if (total >= 7.0) letter = "C+";
+                else if (total >= 6.5) letter = "C";
+                else if (total >= 5.5) letter = "D+";
+                else if (total >= 5.0) letter = "D";
+                
+                const letterCell = row.querySelector('.letter-grade-cell');
+                letterCell.textContent = letter;
+                
+                // Hiển thị cảnh báo trực quan cho sinh viên bị trượt môn
+                if(letter === "F") {
+                    letterCell.style.color = "red";
+                } else {
+                    letterCell.style.color = "inherit";
+                }
+            }
+        });
+    </script>
+}

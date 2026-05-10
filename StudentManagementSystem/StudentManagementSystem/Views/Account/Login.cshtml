@@ -1,0 +1,82 @@
+﻿@* 
+ * ==============================================================================
+ * Tên tệp tin: Login.cshtml
+ * Tổng quan: Giao diện trang Đăng nhập của hệ thống quản lý sinh viên.
+ * Chức năng: Cung cấp form nhập liệu để người dùng gửi thông tin xác thực về AccountController.
+ * Tác giả: Nhóm phát triển phần mềm
+ * Ngày tạo/sửa đổi: 05/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.LoginViewModel
+@{
+    // Khai báo Layout chung của ứng dụng
+    Layout = "_Layout";
+}
+
+<div class="login-container">
+    <div class="login-box">
+        @* Khối tiêu đề và Logo của trang đăng nhập *@
+        <div class="login-header">
+            <div class="login-logo">🎓</div>
+            <h1>HỆ THỐNG QUẢN LÝ SINH VIÊN</h1>
+            <h2>ĐĂNG NHẬP HỆ THỐNG</h2>
+        </div>
+
+        @*
+         * HÀM/MODULE: Form Đăng nhập
+         * asp-action="Login": Chỉ định hàm xử lý dữ liệu là Login trong AccountController.
+         * method="post": Phương thức gửi dữ liệu an toàn.
+         *@
+        <form asp-action="Login" method="post">
+            
+            @* LOGIC PHỨC TẠP: Validation Summary
+               Hiển thị tất cả các lỗi nghiệp vụ trả về từ Controller (ví dụ: sai tài khoản, mật khẩu) *@
+            <div asp-validation-summary="All" class="text-danger"></div>
+            
+            @* Ô nhập liệu Tên đăng nhập *@
+            <div class="form-group">
+                <label asp-for="Username">Tên đăng nhập / Email:</label>
+                <div class="input-with-icon">
+                    <span class="icon">👤</span>
+                    @* asp-for: Tự động liên kết (binding) với thuộc tính Username trong Model *@
+                    <input asp-for="Username" class="form-control" placeholder="Nhập email hoặc mã số..." />
+                </div>
+                @* Hiển thị thông báo lỗi riêng cho trường Username nếu để trống hoặc sai định dạng *@
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            @* Ô nhập liệu Mật khẩu *@
+            <div class="form-group">
+                <label asp-for="Password">Mật khẩu:</label>
+                <div class="input-with-icon">
+                    <span class="icon">🔒</span>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••••••••••" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            @* Các tùy chọn bổ sung: Ghi nhớ đăng nhập và Quên mật khẩu *@
+            <div class="form-options">
+                <label>
+                    <input asp-for="RememberMe" /> Nhớ mật khẩu
+                </label>
+                <a href="#">Quên mật khẩu?</a>
+            </div>
+
+            @* Nút gửi form thực hiện đăng nhập *@
+            <button type="submit" class="btn-login">ĐĂNG NHẬP</button>
+
+            @*
+             * MODULE: Thông tin hướng dẫn (Demo Info)
+             * Cung cấp các tài khoản mẫu để người dùng thử nghiệm các phân quyền khác nhau.
+             *@
+            <div class="demo-info">
+                <p>Demo accounts:</p>
+                <p>Admin: admin@xxx.edu</p>
+                <p>Teacher: gv@xxx.edu</p>
+                <p>Student: sv@xxx.edu</p>
+            </div>
+        </form>
+    </div>
+</div>

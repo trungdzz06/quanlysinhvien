@@ -1,0 +1,132 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (Student)
+ * Tổng quan: Giao diện chính hiển thị danh sách toàn bộ sinh viên trong hệ thống.
+ * Chức năng: 
+ * - Tra cứu sinh viên theo MSSV, Tên hoặc Lớp.
+ * - Cung cấp các chức năng CRUD (Thêm, Sửa, Xóa) và Xuất dữ liệu.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model IEnumerable<StudentManagementSystem.Models.Student>
+
+@{
+    ViewData["Title"] = "Danh Sách Sinh Viên";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng (Breadcrumb) giúp người dùng xác định vị trí trong ứng dụng *@
+    <div class="breadcrumb">
+        HỒ SƠ > QUẢN LÝ DANH SÁCH SINH VIÊN
+    </div>
+
+    @* MODULE: HÀNH ĐỘNG NHANH *@
+    <div class="action-bar">
+        @* Nút thêm mới sinh viên *@
+        <button class="btn btn-success">+ Thêm Mới</button>
+        @* Chức năng xuất báo cáo định dạng Excel phục vụ lưu trữ *@
+        <button class="btn btn-primary">📥 Xuất Excel</button>
+    </div>
+
+    @* * MODULE: BỘ LỌC VÀ TÌM KIẾM
+     * Sử dụng phương thức GET để truyền tham số lọc lên URL.
+     *@
+    <div class="filter-bar">
+        <form method="get">
+            @* Lọc sinh viên theo Lớp hành chính từ danh sách ViewBag.Classes *@
+            <label>Lọc theo lớp:</label>
+            <select name="classFilter" onchange="this.form.submit()">
+                <option value="">Tất cả các lớp</option>
+                @if (ViewBag.Classes != null)
+                {
+                    foreach (var cls in ViewBag.Classes)
+                    {
+                        <option value="@cls.ClassId">@cls.ClassName</option>
+                    }
+                }
+            </select>
+
+            @* Ô tìm kiếm từ khóa linh hoạt cho MSSV và Họ tên *@
+            <input type="text" name="searchTerm" placeholder="🔍 Tìm kiếm MSSV, Tên..." value="@Context.Request.Query["searchTerm"]" />
+            <button type="submit" class="btn btn-search">Tìm kiếm</button>
+        </form>
+    </div>
+
+    @* * BẢNG DỮ LIỆU SINH VIÊN (DATA TABLE)
+     * Hiển thị các thông tin định danh và trạng thái học tập.
+     *@
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>MSSV</th>
+                <th>Họ Tên</th>
+                <th>Lớp</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var student in Model)
+                {
+                    <tr>
+                        @* MSSV đóng vai trò khóa chính (Primary Key) *@
+                        <td><strong>@student.MSSV</strong></td>
+                        <td>@student.FullName</td>
+                        @* Truy xuất tên lớp thông qua Navigation Property (?.Class) *@
+                        <td>@student.Class?.ClassName</td>
+                        <td>
+                            @* Hiển thị trạng thái với icon trực quan *@
+                            <span class="status-active">🟢 @(student.Status ?? "Đang học")</span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                @* Nút Sửa: Chuyển hướng đến trang Detail để cập nhật hồ sơ *@
+                                <a asp-action="Detail" asp-route-id="@student.MSSV" class="btn btn-edit">✏️ Sửa</a>
+                                
+                                @* * LOGIC XÓA AN TOÀN:
+                                 * Sử dụng Form POST thay vì Link để tránh các cuộc tấn công CSRF.
+                                 * Confirm xác nhận trước khi xóa bản ghi khỏi CSDL.
+                                 *@
+                                <form asp-action="Delete" asp-route-id="@student.MSSV" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-delete" onclick="return confirm('Bạn có chắc muốn xóa sinh viên @student.FullName?')">
+                                        🗑️ Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                @* Hiển thị khi không tìm thấy sinh viên nào khớp với điều kiện lọc *@
+                <tr>
+                    <td colspan="5" style="text-align:center; padding: 30px; color: #888;">
+                        Không tìm thấy dữ liệu sinh viên phù hợp.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* * MODULE: PHÂN TRANG (PAGINATION)
+     * Giúp hệ thống hoạt động mượt mà khi số lượng sinh viên lên đến hàng nghìn.
+     *@
+    <div class="pagination">
+        <button class="btn-page">◀ Trước</button>
+        <span class="page-info">Trang 1 / 50</span>
+        <button class="btn-page">Tiếp ▶</button>
+    </div>
+</div>
+
+<style>
+    /* CSS nội bộ hỗ trợ hiển thị bảng và trạng thái */
+    .status-active { color: #28a745; font-weight: bold; }
+    .pagination { margin-top: 20px; text-align: center; }
+    .page-info { margin: 0 15px; font-weight: 500; }
+    .btn-group .btn { margin-right: 5px; }
+</style>

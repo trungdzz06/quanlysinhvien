@@ -1,0 +1,85 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Create.cshtml (Teacher)
+ * Tổng quan: Giao diện biểu mẫu thêm mới hồ sơ Giảng viên vào hệ thống.
+ * Chức năng: 
+ * - Thu thập thông tin định danh, đơn vị công tác và thông tin liên lạc.
+ * - Kiểm tra tính hợp lệ của dữ liệu (Email, Số điện thoại) trước khi lưu.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Teacher
+
+@{
+    ViewData["Title"] = "Thêm Giảng Viên";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng hỗ trợ quản trị viên định vị chức năng *@
+    <div class="breadcrumb">NHÂN SỰ > QUẢN LÝ GIẢNG VIÊN > THÊM MỚI</div>
+
+    <div class="form-card" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+        
+        @* Form gửi dữ liệu POST đến Action Create trong TeacherController *@
+        <form asp-action="Create" method="post">
+            
+            @* * MODULE: ĐỊNH DANH GIẢNG VIÊN
+             * TeacherId: Mã định danh duy nhất (khóa chính).
+             * asp-validation-for: Hiển thị lỗi nếu mã giảng viên đã tồn tại hoặc để trống.
+             *@
+            <div class="form-group">
+                <label>Mã Giảng Viên:</label>
+                <input asp-for="TeacherId" class="form-control" placeholder="VD: GV_005" required />
+                <span asp-validation-for="TeacherId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Họ và Tên:</label>
+                <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên giảng viên..." required />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: ĐƠN VỊ CÔNG TÁC
+             * FacultyId: Khóa ngoại liên kết giảng viên với Khoa quản lý.
+             * Dữ liệu được tải từ ViewBag.Faculties thông qua danh sách chọn (Select).
+             *@
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Khoa Trực Thuộc:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                    <option value="">-- Chọn khoa công tác --</option>
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: THÔNG TIN LIÊN LẠC
+             * Tích hợp kiểu dữ liệu email và tel để trình duyệt hỗ trợ kiểm tra định dạng cơ bản.
+             *@
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Email Nhà Trường:</label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="VD: email@dainam.edu.vn" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Số Điện Thoại:</label>
+                <input asp-for="Phone" type="tel" class="form-control" placeholder="Nhập số điện thoại cá nhân..." />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            @* Thanh lệnh xác nhận hoặc hủy *@
+            <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                <a asp-action="Index" class="btn btn-cancel">Hủy</a>
+                <button type="submit" class="btn btn-success">Lưu Giảng Viên</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @* * TÍCH HỢP VALIDATION PHÍA CLIENT:
+     * Nhúng các kịch bản kiểm tra để đảm bảo dữ liệu đúng định dạng trước khi gửi lên Server.
+     *@
+    <partial name="_ValidationScriptsPartial" />
+}

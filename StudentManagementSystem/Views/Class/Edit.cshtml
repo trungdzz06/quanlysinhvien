@@ -1,0 +1,71 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Edit.cshtml
+ * Tổng quan: Giao diện biểu mẫu (Form) để chỉnh sửa thông tin một Lớp hành chính.
+ * Chức năng: Truy xuất dữ liệu cũ và cho phép cập nhật các thuộc tính hợp lệ.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Class
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Lớp";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng phụ hỗ trợ trải nghiệm người dùng (UX) *@
+    <div class="breadcrumb">HỒ SƠ > QUẢN LÝ LỚP > CHỈNH SỬA</div>
+    
+    <div class="form-container" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        
+        @* * FORM CẬP NHẬT:
+         * asp-action="Edit": Gửi dữ liệu về hàm xử lý cập nhật trong ClassController.
+         *@
+        <form asp-action="Edit" method="post">
+            
+            @* * LOGIC PHỨC TẠP: TRƯỜNG ẨN (HIDDEN INPUT)
+             * Vì ClassId là Khóa chính (Primary Key), ta cần giữ giá trị này trong Form để 
+             * Entity Framework biết cần cập nhật bản ghi nào. Sử dụng type="hidden" để 
+             * dữ liệu vẫn được gửi đi nhưng không hiển thị gây rối cho người dùng.
+             *@
+            <input type="hidden" asp-for="ClassId" />
+
+            @* Hiển thị Mã lớp ở chế độ chỉ đọc để người dùng đối chiếu *@
+            <div class="form-group">
+                <label>Mã Lớp (Không thể sửa):</label>
+                <input class="form-control" value="@Model.ClassId" disabled />
+                <small class="text-muted">Khóa chính không được phép thay đổi sau khi tạo.</small>
+            </div>
+
+            @* Trường chỉnh sửa Tên Lớp *@
+            <div class="form-group">
+                <label>Tên Lớp:</label>
+                <input asp-for="ClassName" class="form-control" />
+                @* Hiển thị thông báo lỗi nếu dữ liệu không thỏa mãn các Data Annotations *@
+                <span asp-validation-for="ClassName" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: THAY ĐỔI KHOA CHỦ QUẢN
+             * Cho phép luân chuyển lớp học sang khoa khác nếu có sự thay đổi về tổ chức.
+             * Dữ liệu danh sách Khoa được lấy từ ViewBag.Faculties do Controller cung cấp.
+             *@
+            <div class="form-group">
+                <label>Khoa:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            @* Thanh lệnh điều hướng và thực thi *@
+            <div class="action-bar-bottom" style="margin-top: 20px; text-align: right;">
+                @* Quay lại danh sách mà không lưu thay đổi *@
+                <a asp-action="Index" class="btn btn-cancel">Quay lại</a>
+                
+                @* Thực hiện gửi yêu cầu cập nhật (Submit) *@
+                <button type="submit" class="btn btn-primary">Cập Nhật</button>
+            </div>
+        </form>
+    </div>
+</div>

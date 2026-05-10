@@ -1,0 +1,99 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Create.cshtml (CourseClass)
+ * Tổng quan: Giao diện biểu mẫu thiết lập và mở một Lớp học phần mới.
+ * Chức năng: Kết nối thông tin giữa Môn học, Giảng viên và kế hoạch đào tạo (Học kỳ, Sĩ số).
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.CourseClass
+
+@{
+    ViewData["Title"] = "Mở Lớp Học Phần";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng phân cấp (Breadcrumb) giúp quản lý luồng công việc *@
+    <div class="breadcrumb">ĐÀO TẠO > QUẢN LÝ LỚP HP > MỞ LỚP MỚI</div>
+
+    <div class="form-card" style="max-width: 800px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        
+        @* Form gửi dữ liệu POST đến Action Create trong Controller *@
+        <form asp-action="Create" method="post">
+            
+            @* * LOGIC GIAO DIỆN: GRID LAYOUT
+             * Chia form thành 2 cột để tối ưu không gian hiển thị trên màn hình lớn, 
+             * giúp quản trị viên bao quát được nhiều trường thông tin cùng lúc.
+             *@
+            <div class="grid-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                
+                @* 1. Mã Lớp học phần: Định danh duy nhất cho lớp *@
+                <div class="form-group">
+                    <label>Mã Lớp Học Phần:</label>
+                    <input asp-for="CourseClassId" class="form-control" placeholder="VD: LHP_CNPM_01" required />
+                    <span asp-validation-for="CourseClassId" class="text-danger"></span>
+                </div>
+
+                @* 2. Chọn Môn học: Lấy dữ liệu từ bảng Subjects thông qua ViewBag *@
+                <div class="form-group">
+                    <label>Môn Học:</label>
+                    <select asp-for="SubjectCode" class="form-control"
+                            asp-items="@(new SelectList(ViewBag.Subjects, "SubjectCode", "SubjectName"))">
+                        <option value="">-- Chọn môn học --</option>
+                    </select>
+                </div>
+
+                @* 3. Chọn Giảng viên phụ trách: Lấy dữ liệu từ bảng Teachers *@
+                <div class="form-group">
+                    <label>Giảng Viên:</label>
+                    <select asp-for="TeacherId" class="form-control"
+                            asp-items="@(new SelectList(ViewBag.Teachers, "TeacherId", "FullName"))">
+                        <option value="">-- Chọn giảng viên --</option>
+                    </select>
+                </div>
+
+                @* 4. Chọn Học kỳ tác nghiệp *@
+                <div class="form-group">
+                    <label>Học Kỳ:</label>
+                    <select asp-for="Semester" class="form-control">
+                        <option>Học kỳ 1 - 2024</option>
+                        <option>Học kỳ 2 - 2024</option>
+                        <option>Học kỳ Summer</option>
+                    </select>
+                </div>
+
+                @* 5. Thiết lập Sĩ số tối đa: Giới hạn số lượng sinh viên đăng ký *@
+                <div class="form-group">
+                    <label>Sĩ số tối đa:</label>
+                    <input asp-for="MaxStudents" type="number" class="form-control" value="50" />
+                </div>
+
+                @* 6. Lịch học dự kiến *@
+                <div class="form-group">
+                    <label>Lịch học:</label>
+                    <input asp-for="Schedule" class="form-control" placeholder="VD: Thứ 2 (Ca 1)" />
+                </div>
+
+                @* 7. Thiết lập trạng thái ban đầu của lớp học *@
+                <div class="form-group">
+                    <label>Trạng thái:</label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Mở đăng ký">Mở đăng ký</option>
+                        <option value="Chờ duyệt">Chờ duyệt</option>
+                        <option value="Đã đầy">Đã đầy</option>
+                    </select>
+                </div>
+            </div>
+
+            @* Thanh hành động phía cuối form *@
+            <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                @* Nút Hủy: Quay lại trang danh sách quản lý *@
+                <a asp-action="Index" class="btn btn-cancel">Hủy bỏ</a>
+                
+                @* Nút Xác nhận: Đẩy dữ liệu vào CSDL thông qua luồng Controller-Model-DB *@
+                <button type="submit" class="btn btn-success">✅ Xác nhận mở lớp</button>
+            </div>
+        </form>
+    </div>
+</div>

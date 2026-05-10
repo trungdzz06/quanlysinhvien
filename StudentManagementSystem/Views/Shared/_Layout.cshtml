@@ -1,0 +1,79 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: _Layout.cshtml
+ * Tổng quan: Tệp bố cục chính (Main Layout) của toàn bộ hệ thống.
+ * Chức năng: 
+ * - Định nghĩa cấu trúc HTML5 tiêu chuẩn.
+ * - Kiểm tra trạng thái đăng nhập để hiển thị giao diện quản trị hoặc trang login.
+ * - Quản lý việc nhúng CSS/JS và các Section động.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hệ Thống Quản Lý Sinh Viên</title>
+    
+    @* Nhúng tệp Stylesheet chính của hệ thống *@
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @* * LOGIC PHỨC TẠP: KIỂM TRA QUYỀN TRUY CẬP (AUTHENTICATION)
+     * Nếu người dùng đã đăng nhập: Hiển thị đầy đủ Header, Sidebar và nội dung quản trị.
+     * Nếu chưa đăng nhập: Chỉ hiển thị phần thân (thường là trang Login) mà không có thanh điều hướng.
+     *@
+    @if (User.Identity.IsAuthenticated)
+    {
+        <header class="header">
+            <div class="header-content">
+                @* Phần nhận diện thương hiệu (Logo) *@
+                <div class="logo-section">
+                    <span class="logo-icon">🎓</span>
+                    <h1>HỆ THỐNG QUẢN LÝ SINH VIÊN</h1>
+                </div>
+
+                @* Phần thông tin người dùng và chức năng hệ thống *@
+                <div class="user-section">
+                    <span>👤 Xin chào, @User.Identity.Name</span>
+                    
+                    @* Form đăng xuất bảo mật sử dụng phương thức POST *@
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                        <button type="submit" class="btn-logout">Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-container">
+            @* * MODULE: SIDEBAR (THANH ĐIỀU HƯỚNG CẠNH)
+             * Sử dụng Partial View để tái sử dụng mã nguồn thanh Menu bên trái.
+             *@
+            <partial name="_Sidebar" />
+
+            @* * MODULE: CONTENT AREA
+             * RenderBody(): Nơi nội dung của các View con (Index, Create, Edit...) sẽ được đổ vào.
+             *@
+            <main class="content">
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        @* Hiển thị nội dung độc lập (dành cho trang Đăng nhập) *@
+        @RenderBody()
+    }
+
+    @* Nhúng tệp JavaScript xử lý các hiệu ứng và tương tác Client-side *@
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* * LOGIC PHỨC TẠP: SCRIPTS SECTION
+     * Cho phép các View con nhúng thêm các đoạn mã JavaScript đặc thù 
+     * (ví dụ: Chart.js hoặc xử lý sự kiện riêng) vào cuối trang.
+     *@
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

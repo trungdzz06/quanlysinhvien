@@ -1,0 +1,80 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Create.cshtml (Subject)
+ * Tổng quan: Giao diện biểu mẫu thêm mới Môn học vào hệ thống đào tạo.
+ * Chức năng: 
+ * - Thu thập thông tin định danh môn học, số tín chỉ và khoa quản lý.
+ * - Kiểm tra tính hợp lệ của dữ liệu ngay tại Client (Validation).
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Subject
+
+@{
+    ViewData["Title"] = "Thêm Môn Học";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng hỗ trợ người dùng định vị chức năng *@
+    <div class="breadcrumb">ĐÀO TẠO > QUẢN LÝ MÔN HỌC > THÊM MỚI</div>
+
+    <div class="form-card" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+        
+        @* Form gửi dữ liệu POST đến Action Create trong SubjectController *@
+        <form asp-action="Create" method="post">
+            
+            @* * MODULE: ĐỊNH DANH MÔN HỌC
+             * SubjectCode: Mã môn học thường là duy nhất (Primary Key).
+             * asp-validation-for: Hiển thị lỗi nếu mã môn học bị trùng hoặc sai định dạng.
+             *@
+            <div class="form-group">
+                <label>Mã Môn Học:</label>
+                <input asp-for="SubjectCode" class="form-control" placeholder="VD: IT_CS_01" required />
+                <span asp-validation-for="SubjectCode" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Tên Môn Học:</label>
+                <input asp-for="SubjectName" class="form-control" placeholder="Nhập tên môn học đầy đủ..." required />
+                <span asp-validation-for="SubjectName" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: ĐỊNH MỨC ĐÀO TẠO
+             * Credits: Số tín chỉ ảnh hưởng đến cách tính học phí và GPA.
+             * Giới hạn từ 1 đến 6 tín chỉ để đảm bảo logic đào tạo.
+             *@
+            <div class="form-group">
+                <label>Số Tín Chỉ:</label>
+                <input asp-for="Credits" type="number" class="form-control" min="1" max="6" value="3" />
+                <small class="text-muted">Mặc định là 3 tín chỉ cho các môn chuyên ngành.</small>
+            </div>
+
+            @* * MODULE: QUẢN LÝ PHÂN CẤP
+             * FacultyId: Khóa ngoại liên kết môn học với một Khoa cụ thể.
+             * Dữ liệu được đổ vào từ ViewBag thông qua SelectList.
+             *@
+            <div class="form-group">
+                <label>Khoa Quản Lý:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                    <option value="">-- Chọn khoa phụ trách --</option>
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            @* Thanh lệnh xác nhận hoặc hủy bỏ thao tác *@
+            <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                <a asp-action="Index" class="btn btn-cancel">Hủy</a>
+                <button type="submit" class="btn btn-success">Lưu Môn Học</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @* * TÍCH HỢP VALIDATION:
+     * Nhúng thư viện kiểm tra dữ liệu phía Client để tránh gửi các yêu cầu sai lên Server.
+     *@
+    <partial name="_ValidationScriptsPartial" />
+}

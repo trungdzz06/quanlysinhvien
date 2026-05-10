@@ -1,0 +1,66 @@
+﻿@* 
+ * ==============================================================================
+ * Tên tệp tin: Index.cshtml (Settings)
+ * Tổng quan: Giao diện quản trị các thiết lập cốt lõi của hệ thống.
+ * Chức năng: Quản lý phân quyền (RBAC), sao lưu dữ liệu và cấu hình thời gian học thuật.
+ * Tác giả: Nhóm phát triển phần mềm
+ * Ngày tạo/sửa đổi: 05/05/2026
+ * ==============================================================================
+ *@
+
+@model dynamic 
+@* Sử dụng dynamic hoặc Model cụ thể tùy theo cấu trúc dự án *@
+@{
+    ViewData["Title"] = "Cài Đặt Hệ Thống";
+}
+
+<div class="page-container">
+    @* Phân đoạn breadcrumb: Chỉ dẫn vị trí hiện tại trong sơ đồ chức năng *@
+    <div class="breadcrumb">
+        CÀI ĐẶT HỆ THỐNG
+    </div>
+
+    @* MODULE: Quản lý phân quyền (Role-Based Access Control)
+       Chức năng: Thiết lập các nhóm quyền hạn để giới hạn quyền truy cập vào các module cụ thể. *@
+    <div class="settings-section">
+        <h3>🛡️ QUẢN LÝ PHÂN QUYỀN (RBAC)</h3>
+        <p>Các nhóm quyền: Admin, Quản lý Khoa, Giảng viên, Sinh viên</p>
+        <button class="btn btn-warning">Phân quyền nhóm</button>
+    </div>
+
+    @* 
+     * MODULE: Sao lưu và Phục hồi (Maintenance)
+     * Chức năng: Thực hiện lệnh sao lưu trạng thái hiện tại của CSDL.
+     * Logic: Hiển thị mốc thời gian LastBackupTime được tính toán từ Controller.
+     *@
+    <div class="settings-section">
+        <h3>💾 SAO LƯU VÀ PHỤC HỒI DỮ LIỆU</h3>
+        @* Giải thích: Hiển thị định dạng giờ/ngày từ dữ liệu ViewBag truyền sang *@
+        <p>Thời gian sao lưu gần nhất: @ViewBag.LastBackupTime.ToString("HH:mm dd/MM/yyyy")</p>
+        
+        @* LOGIC PHỨC TẠP: Bảo mật ghi dữ liệu
+           Sử dụng phương thức POST kèm ValidateAntiForgeryToken để ngăn chặn các cuộc tấn công 
+           giả mạo yêu cầu từ bên ngoài khi thực hiện các tác vụ hệ thống nhạy cảm. *@
+        <form asp-action="Backup" method="post">
+            <button type="submit" class="btn btn-success">Tạo bản sao lưu mới (Backup)</button>
+        </form>
+    </div>
+
+    @* 
+     * MODULE: Cấu hình tham số học thuật
+     * Chức năng: Thay đổi học kỳ đang hoạt động trên toàn hệ thống.
+     * Logic: Dữ liệu được gửi về hàm UpdateSemester để cập nhật trạng thái các phiên làm việc.
+     *@
+    <div class="settings-section">
+        <h3>⚙️ CẤU HÌNH HỌC KỲ HIỆN TẠI</h3>
+        <form asp-action="UpdateSemester" method="post">
+            <label>Học kỳ đang hoạt động:</label>
+            <select name="semester" class="form-control" style="width: 300px; display: inline-block;">
+                <option>Học kỳ 1 - 2024</option>
+                <option>Học kỳ 2 - 2024</option>
+                <option>Học kỳ 3 - 2024</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+        </form>
+    </div>
+</div>

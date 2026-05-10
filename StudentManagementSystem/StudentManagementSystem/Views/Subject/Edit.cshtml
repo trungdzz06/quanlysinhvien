@@ -1,0 +1,76 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Edit.cshtml (Subject)
+ * Tổng quan: Giao diện biểu mẫu cập nhật thông tin Môn học đã tồn tại.
+ * Chức năng: 
+ * - Cho phép thay đổi tên môn, số tín chỉ và đơn vị quản lý.
+ * - Bảo vệ khóa chính (SubjectCode) không bị thay đổi trong quá trình chỉnh sửa.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Subject
+
+@{
+    ViewData["Title"] = "Sửa Môn Học";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng hỗ trợ người dùng theo dõi vị trí thao tác *@
+    <div class="breadcrumb">ĐÀO TẠO > QUẢN LÝ MÔN HỌC > CẬP NHẬT</div>
+
+    <div class="form-card" style="max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        @* Form gửi dữ liệu cập nhật theo phương thức POST *@
+        <form asp-action="Edit" method="post">
+            
+            @* * LOGIC PHỨC TẠP: QUẢN LÝ KHÓA CHÍNH
+             * Sử dụng input type="hidden" để gửi SubjectCode về Controller.
+             * Điều này cực kỳ quan trọng để Entity Framework nhận diện đúng bản ghi cần Update trong SQL.
+             *@
+            <input type="hidden" asp-for="SubjectCode" />
+
+            <div class="form-group">
+                @* Hiển thị mã môn học cho người dùng xem nhưng khóa quyền chỉnh sửa (disabled) *@
+                <label>Mã Môn Học (Cố định):</label>
+                <input class="form-control" value="@Model.SubjectCode" disabled style="background-color: #f8f9fa; cursor: not-allowed;" />
+                <small class="text-muted">Mã định danh duy nhất của môn học không thể thay đổi.</small>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Tên Môn Học:</label>
+                <input asp-for="SubjectName" class="form-control" placeholder="Nhập tên môn học mới..." required />
+                <span asp-validation-for="SubjectName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Số Tín Chỉ:</label>
+                <input asp-for="Credits" type="number" class="form-control" min="1" max="6" />
+                <span asp-validation-for="Credits" class="text-danger"></span>
+            </div>
+
+            @* * MODULE: CẬP NHẬT ĐƠN VỊ QUẢN LÝ
+             * Load lại danh sách khoa từ ViewBag để người dùng có thể điều chuyển môn học sang khoa khác.
+             *@
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Khoa Quản Lý:</label>
+                <select asp-for="FacultyId" class="form-control"
+                        asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+
+            @* Thanh lệnh điều hướng *@
+            <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                <a asp-action="Index" class="btn btn-cancel">Quay lại</a>
+                @* Nút xác nhận thực thi lệnh Update vào CSDL *@
+                <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @* Kích hoạt kiểm tra dữ liệu phía Client (ví dụ: kiểm tra số tín chỉ trong khoảng 1-6) *@
+    <partial name="_ValidationScriptsPartial" />
+}

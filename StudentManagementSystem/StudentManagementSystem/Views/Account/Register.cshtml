@@ -1,0 +1,102 @@
+﻿@* 
+ * ==============================================================================
+ * Tên tệp tin: Register.cshtml
+ * Tổng quan: Giao diện trang Đăng ký tài khoản dành cho người dùng mới.
+ * Chức năng: Cho phép người dùng lựa chọn vai trò (Sinh viên/Giảng viên) và khởi tạo tài khoản.
+ * Tác giả: Nhóm phát triển phần mềm
+ * Ngày tạo/sửa đổi: 05/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.RegisterViewModel
+@{
+    // Thiết lập Layout chung cho trang web
+    Layout = "_Layout";
+}
+
+<div class="login-container">
+    <div class="login-box">
+        @* Khối tiêu đề: Giới thiệu mục đích của trang *@
+        <div class="login-header">
+            <div class="login-logo">🎓</div>
+            <h1>HỆ THỐNG QUẢN LÝ SINH VIÊN</h1>
+            <h2>ĐĂNG KÝ TÀI KHOẢN MỚI</h2>
+        </div>
+
+        @*
+         * HÀM/MODULE: Form Đăng ký tài khoản
+         * asp-action="Register": Gửi dữ liệu về hàm xử lý Register trong AccountController.
+         * method="post": Đảm bảo thông tin mật khẩu được gửi đi bảo mật.
+         *@
+        <form asp-action="Register" method="post">
+            
+            @* LOGIC PHỨC TẠP: Validation Summary
+               Hiển thị tổng hợp các lỗi từ phía Server, ví dụ: Email đã tồn tại trong CSDL. *@
+            <div asp-validation-summary="All" class="text-danger"></div>
+            
+            @* MODULE: Lựa chọn vai trò (Role Selection)
+               Quyết định xem tài khoản sẽ được lưu vào bảng Student hay Teacher trong database. *@
+            <div class="form-group">
+                <label>Vai trò:</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" asp-for="Role" value="Student" checked /> Sinh viên
+                    </label>
+                    <label>
+                        <input type="radio" asp-for="Role" value="Teacher" /> Giảng viên
+                    </label>
+                </div>
+            </div>
+
+            @* Nhập Họ và tên *@
+            <div class="form-group">
+                <label asp-for="FullName">Họ và tên:</label>
+                <div class="input-with-icon">
+                    <span class="icon">👤</span>
+                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ..." />
+                </div>
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            @* Nhập Email nhà trường *@
+            <div class="form-group">
+                <label asp-for="Email">Email nhà trường:</label>
+                <div class="input-with-icon">
+                    <span class="icon">📧</span>
+                    <input asp-for="Email" class="form-control" placeholder="Nhập email (@@dainam.edu.vn)..." />
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            @* Nhập Mật khẩu *@
+            <div class="form-group">
+                <label asp-for="Password">Mật khẩu:</label>
+                <div class="input-with-icon">
+                    <span class="icon">🔒</span>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••••••••••" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            @* Xác nhận lại mật khẩu *@
+            <div class="form-group">
+                <label asp-for="ConfirmPassword">Xác nhận mật khẩu:</label>
+                <div class="input-with-icon">
+                    <span class="icon">🔒</span>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••••••••••" />
+                </div>
+                @* LOGIC PHỨC TẠP: Client-side Validation
+                   Tự động kiểm tra mật khẩu nhập lại có khớp với mật khẩu trên hay không ngay tại trình duyệt. *@
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            @* Nút gửi yêu cầu đăng ký *@
+            <button type="submit" class="btn-login btn-success">ĐĂNG KÝ</button>
+
+            @* Liên kết chuyển hướng nhanh dành cho người dùng đã có tài khoản *@
+            <div class="demo-info">
+                <p>Đã có tài khoản? <a asp-action="Login">Đăng nhập tại đây</a></p>
+            </div>
+        </form>
+    </div>
+</div>

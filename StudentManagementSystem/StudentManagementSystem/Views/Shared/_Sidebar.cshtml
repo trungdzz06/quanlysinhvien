@@ -1,0 +1,77 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: _Sidebar.cshtml
+ * Tổng quan: Thành phần điều hướng phụ (Partial View) nằm bên trái giao diện.
+ * Chức năng: 
+ * - Cung cấp lối tắt đến các phân hệ quản lý.
+ * - Phân quyền hiển thị menu dựa trên vai trò (Role) của người dùng.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+<aside class="sidebar">
+    <nav>
+        @* * LOGIC PHÂN QUYỀN: QUẢN TRỊ VIÊN (ADMIN)
+         * Hiển thị toàn bộ các tính năng quản lý cốt lõi của hệ thống.
+         *@
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="Home" asp-action="Dashboard" class="menu-item">
+                <span>📊</span> Tổng quan
+            </a>
+            <a asp-controller="Student" asp-action="Index" class="menu-item">
+                <span>👨‍🎓</span> Quản lý Hồ sơ
+            </a>
+            <a asp-controller="Class" asp-action="Index" class="menu-item">
+                <span>🏫</span> Quản lý Lớp học
+            </a>
+            <a asp-controller="CourseClass" asp-action="Index" class="menu-item">
+                <span>📚</span> Lớp Học Phần
+            </a>
+            <a asp-controller="Subject" asp-action="Index" class="menu-item">
+                <span>📚</span> Quản lý Môn học
+            </a>
+            <a asp-controller="Teacher" asp-action="Index" class="menu-item">
+                <span>👨‍🏫</span> Quản lý Nhân sự
+            </a>
+            <a asp-controller="Grade" asp-action="Entry" class="menu-item">
+                <span>📝</span> Quản lý Điểm số
+            </a>
+            <a asp-controller="Report" asp-action="Index" class="menu-item">
+                <span>📈</span> Báo cáo Thống kê
+            </a>
+            <a asp-controller="Settings" asp-action="Index" class="menu-item">
+                <span>⚙️</span> Cài đặt Hệ thống
+            </a>
+        }
+        
+        @* * LOGIC PHÂN QUYỀN: GIẢNG VIÊN (TEACHER)
+         * Chỉ hiển thị các chức năng liên quan đến việc dạy học và quản lý điểm.
+         *@
+        else if (User.IsInRole("Teacher"))
+        {
+            <a asp-controller="Home" asp-action="Dashboard" class="menu-item">
+                <span>📊</span> Lớp của tôi
+            </a>
+            <a asp-controller="Grade" asp-action="Entry" class="menu-item">
+                <span>📝</span> Quản lý Điểm số
+            </a>
+        }
+        
+        @* * LOGIC PHÂN QUYỀN: SINH VIÊN (STUDENT)
+         * Tập trung vào các dịch vụ cá nhân như xem kết quả học tập và đăng ký học phần.
+         *@
+        else if (User.IsInRole("Student"))
+        {
+            <a asp-controller="StudentPortal" asp-action="Index" class="menu-item">
+                <span>🏠</span> Trang chủ
+            </a>
+            <a asp-controller="StudentPortal" asp-action="Grades" class="menu-item">
+                <span>📝</span> Xem Điểm
+            </a>
+            <a asp-controller="StudentPortal" asp-action="Register" class="menu-item">
+                <span>✅</span> Đăng ký Tín chỉ
+            </a>
+        }
+    </nav>
+</aside>

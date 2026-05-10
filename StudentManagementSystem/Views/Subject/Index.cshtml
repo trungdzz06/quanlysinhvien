@@ -1,0 +1,138 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Index.cshtml (Subject)
+ * Tổng quan: Giao diện danh sách quản lý danh mục Môn học trong toàn hệ thống.
+ * Chức năng: 
+ * - Hiển thị danh sách môn học kèm thông tin tín chỉ và khoa quản lý.
+ * - Hỗ trợ lọc dữ liệu theo đơn vị đào tạo (Khoa) và tìm kiếm từ khóa.
+ * - Cung cấp các công cụ điều hướng CRUD (Thêm, Sửa, Xóa).
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model IEnumerable<StudentManagementSystem.Models.Subject>
+
+@{
+    ViewData["Title"] = "Quản Lý Môn Học";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng (Breadcrumb) giúp xác định phân cấp quản lý *@
+    <div class="breadcrumb">
+        ĐÀO TẠO > QUẢN LÝ MÔN HỌC
+    </div>
+
+    @* * MODULE: THÔNG BÁO HỆ THỐNG
+     * TempData["Success"]: Hiển thị thông báo phản hồi nhanh sau các thao tác Lưu/Xóa thành công.
+     *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" style="margin-bottom: 20px; padding: 15px; border-radius: 5px; background-color: #d4edda; color: #155724;">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    @* Nút tắt để chuyển sang giao diện thêm mới môn học *@
+    <div class="action-bar">
+        <a asp-action="Create" class="btn btn-success" style="margin-bottom: 15px; display: inline-block;">+ Thêm Môn Học Mới</a>
+    </div>
+
+    @* * MODULE: TRUY VẤN & LỌC DỮ LIỆU
+     * Sử dụng form GET để duy trì trạng thái tìm kiếm trên thanh địa chỉ (URL).
+     *@
+    <div class="filter-bar" style="background: #f4f7f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <form method="get" asp-action="Index">
+            <label>Khoa quản lý:</label>
+            @* Tự động Submit form khi người dùng thay đổi lựa chọn Khoa *@
+            <select name="facultyId" onchange="this.form.submit()" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="">-- Tất cả các khoa --</option>
+                @if (ViewBag.Faculties != null)
+                {
+                    foreach (var faculty in ViewBag.Faculties)
+                    {
+                        <!option value="@faculty.FacultyId" @(Context.Request.Query["facultyId"] == faculty.FacultyId ? "selected" : "")>
+                            @faculty.FacultyName
+                        </!option>
+                    }
+                }
+            </select>
+
+            @* Tìm kiếm theo từ khóa: Tên môn học hoặc mã môn *@
+            <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" 
+                   placeholder="🔍 Tìm mã hoặc tên môn..." style="padding: 5px; width: 250px; border-radius: 4px; border: 1px solid #ccc; margin-left: 10px;" />
+            
+            <button type="submit" class="btn btn-search">Tìm kiếm</button>
+        </form>
+    </div>
+
+    @* * BẢNG DỮ LIỆU MÔN HỌC (DATA TABLE)
+     * Hiển thị thông tin chi tiết và các nút hành động tương ứng cho từng môn học.
+     *@
+    <table class="data-table" style="width: 100%; border-collapse: collapse; background: #fff;">
+        <thead>
+            <tr style="background-color: #0b3c5d; color: #fff; text-align: left;">
+                <th style="padding: 12px;">Mã Môn Học</th>
+                <th style="padding: 12px;">Tên Môn Học</th>
+                <th style="padding: 12px;">Số Tín Chỉ</th>
+                <th style="padding: 12px;">Khoa</th>
+                <th style="padding: 12px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px;"><strong>@item.SubjectCode</strong></td>
+                        <td style="padding: 12px;">@item.SubjectName</td>
+                        <td style="padding: 12px; text-align: center;">@item.Credits</td>
+                        @* Navigation Property: Tải tên khoa từ bảng liên kết Faculty *@
+                        <td style="padding: 12px;">@item.Faculty?.FacultyName</td>
+                        <td style="padding: 12px;">
+                            <div class="btn-group">
+                                @* Chức năng Sửa: Truyền mã môn học qua Route ID *@
+                                <a asp-action="Edit" asp-route-id="@item.SubjectCode" class="btn btn-edit" title="Chỉnh sửa">✏️</a>
+                                
+                                @* * LOGIC XÓA BẢO MẬT (CSRF PROTECTION):
+                                 * Sử dụng Form POST thay vì Link đơn thuần.
+                                 * Nhúng Token chống giả mạo để bảo vệ hành động xóa dữ liệu.
+                                 *@
+                                <form asp-action="Delete" asp-route-id="@item.SubjectCode" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-delete" title="Xóa môn học"
+                                            onclick="return confirm('Hệ thống sẽ xóa mọi dữ liệu liên quan đến môn học này. Bạn chắc chắn chứ?')">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" style="text-align:center; padding: 40px; color: #999; font-style: italic;">
+                        Không tìm thấy môn học nào khớp với điều kiện tra cứu.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    /* CSS hỗ trợ giao diện */
+    .btn-group .btn { 
+        padding: 5px 10px; 
+        text-decoration: none; 
+        border-radius: 4px; 
+        border: none; 
+        cursor: pointer;
+        margin-right: 5px;
+    }
+    .btn-edit { background-color: #f0ad4e; color: white; }
+    .btn-delete { background-color: #d9534f; color: white; }
+    .btn-search { background-color: #0b3c5d; color: white; padding: 6px 15px; border-radius: 4px; border: none; cursor: pointer; }
+</style>

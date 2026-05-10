@@ -1,0 +1,141 @@
+﻿@* * ==============================================================================
+ * Tên tệp tin: Detail.cshtml (Student)
+ * Tổng quan: Giao diện hiển thị chi tiết và cho phép cập nhật hồ sơ cá nhân sinh viên.
+ * Chức năng: 
+ * - Hiển thị ảnh đại diện và thông tin cơ bản.
+ * - Cho phép chỉnh sửa thông tin cá nhân, liên lạc và trạng thái học tập.
+ * Tác giả: Nhóm 4
+ * Ngày tạo/sửa đổi: 10/05/2026
+ * ==============================================================================
+ *@
+
+@model StudentManagementSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Chi Tiết Hồ Sơ";
+}
+
+<div class="page-container">
+    @* Thanh điều hướng phân cấp (Breadcrumb) *@
+    <div class="breadcrumb">
+        HỒ SƠ > DANH SÁCH SINH VIÊN > CHI TIẾT HỒ SƠ
+    </div>
+
+    @* * MODULE: THANH HÀNH ĐỘNG (ACTION BAR)
+     * Chứa nút quay lại và nút Lưu. Nút lưu sử dụng thuộc tính 'form="studentForm"' 
+     * để kích hoạt gửi dữ liệu từ một Form nằm ngoài khối div của nút.
+     *@
+    <div class="action-bar">
+        <a asp-action="Index" class="btn btn-back">◀ Quay lại</a>
+        <button type="submit" form="studentForm" class="btn btn-success">💾 Lưu thay đổi</button>
+    </div>
+
+    <form id="studentForm" asp-action="Detail" method="post">
+        @* * GIAO DIỆN CHI TIẾT (DETAIL GRID)
+         * Chia làm 2 phần: Bên trái hiển thị Profile nhanh, bên phải là các Form nhập liệu.
+         *@
+        <div class="detail-grid">
+            
+            @* 1. PHẦN HÌNH ẢNH & ĐỊNH DANH NHANH *@
+            <div class="profile-section">
+                <div class="profile-image">👤</div>
+                <h3>@Model.FullName</h3>
+                <p><strong>MSSV:</strong> @Model.MSSV</p>
+            </div>
+
+            @* 2. PHẦN NỘI DUNG CHI TIẾT *@
+            <div class="info-section">
+                <h3>THÔNG TIN CÁ NHÂN</h3>
+                
+                <div class="form-row">
+                    @* Mã sinh viên được đặt ở chế độ readonly vì là khóa chính *@
+                    <div class="form-group">
+                        <label>Mã Sinh Viên:</label>
+                        <input asp-for="MSSV" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Họ và Tên:</label>
+                        <input asp-for="FullName" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ngày Sinh: 📅</label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                    </div>
+                    @* Sử dụng Radio Group cho giới tính để tối ưu trải nghiệm chọn *@
+                    <div class="form-group">
+                        <label>Giới Tính:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" asp-for="Gender" value="Nam" /> Nam</label>
+                            <label><input type="radio" asp-for="Gender" value="Nữ" /> Nữ</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quê Quán:</label>
+                    <input asp-for="Hometown" class="form-control" />
+                </div>
+
+                <h3>THÔNG TIN HỌC VỤ & LIÊN HỆ</h3>
+
+                <div class="form-row">
+                    @* Dropdown lấy dữ liệu Lớp từ ViewBag để gán quan hệ khóa ngoại *@
+                    <div class="form-group">
+                        <label>Lớp Hành Chính:</label>
+                        <select asp-for="ClassId" class="form-control">
+                            @if (ViewBag.Classes != null)
+                            {
+                                foreach (var cls in ViewBag.Classes)
+                                {
+                                    <option value="@cls.ClassId">@cls.ClassName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    @* Dropdown lấy dữ liệu Khoa từ ViewBag *@
+                    <div class="form-group">
+                        <label>Khoa:</label>
+                        <select asp-for="FacultyId" class="form-control">
+                            @if (ViewBag.Faculties != null)
+                            {
+                                foreach (var faculty in ViewBag.Faculties)
+                                {
+                                    <option value="@faculty.FacultyId">@faculty.FacultyName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Số Điện Thoại:</label>
+                        <input asp-for="Phone" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input asp-for="Email" class="form-control" />
+                    </div>
+                </div>
+
+                @* Trạng thái học tập hỗ trợ quản lý vòng đời sinh viên *@
+                <div class="form-group">
+                    <label>Trạng thái:</label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Đang học">Đang học</option>
+                        <option value="Tạm ngừng">Tạm ngừng</option>
+                        <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @* Nhúng các kịch bản kiểm tra dữ liệu phía Client *@
+    <partial name="_ValidationScriptsPartial" />
+}
