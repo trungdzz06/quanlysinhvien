@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Index.cshtml (CourseClass)
  * Tổng quan: Giao diện danh sách quản lý các Lớp học phần (LHP).
  * Chức năng: Tìm kiếm, lọc theo học kỳ, hiển thị trực quan sĩ số và trạng thái lớp.
@@ -26,10 +26,16 @@
             ✅ @TempData["Success"]
         </div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            ❌ @TempData["Error"]
+        </div>
+    }
 
     <div class="action-bar">
         <a asp-action="Create" class="btn btn-success">+ Mở Lớp Học Phần Mới</a>
-        <button class="btn btn-primary">📥 Xuất TKB</button>
+        <a asp-action="ExportTKB" asp-route-semester="@Context.Request.Query["semester"]" class="btn btn-primary" title="Xuất thời khóa biểu ra file Excel/CSV">📥 Xuất TKB (.csv)</a>
     </div>
 
     @* * MODULE: BỘ LỌC VÀ TÌM KIẾM
@@ -123,7 +129,7 @@
                         <td>
                             <div class="btn-group">
                                 <a asp-action="Edit" asp-route-id="@item.CourseClassId" class="btn btn-edit" title="Chỉnh sửa">✏️</a>
-                                <button class="btn btn-info" title="Danh sách sinh viên">👥</button>
+                                <a asp-action="Details" asp-route-id="@item.CourseClassId" class="btn btn-info" title="Danh sách sinh viên">👥</a>
                                 
                                 @* * XỬ LÝ XÓA AN TOÀN:
                                  * Sử dụng Anti-Forgery Token và xác nhận JavaScript trước khi thực hiện.

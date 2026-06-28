@@ -69,12 +69,13 @@ namespace StudentManagementSystem.Models
          * Ví dụ: "Đang học", "Tạm ngừng", "Đã tốt nghiệp".
          */
 		public string? Status { get; set; }
+        public string? PasswordHash { get; set; }
 
-		/* 
+        /* 
          * LOGIC PHỨC TẠP: QUAN HỆ MỘT - NHIỀU (One-to-Many)
          * ICollection<Grade>: Một sinh viên có thể có nhiều đầu điểm (kết quả học tập).
          * Danh sách này cho phép truy xuất toàn bộ lịch sử điểm của sinh viên đó.
          */
-		public virtual ICollection<Grade>? Grades { get; set; }
+        public virtual ICollection<Grade>? Grades { get; set; }
 	}
 }

@@ -1,0 +1,168 @@
+@model IEnumerable<StudentManagementSystem.Models.StudentGradeReport>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Báo cáo điểm số - Hệ thống quản lý sinh viên</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif, Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h2 {
+            margin: 0;
+            text-transform: uppercase;
+            font-size: 1.6em;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+        .metadata {
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+        .metadata table {
+            width: 100%;
+        }
+        .metadata td {
+            padding: 4px 0;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #000;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 1em;
+        }
+        .report-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .footer-sig {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sig-block {
+            text-align: center;
+            width: 250px;
+        }
+        .sig-space {
+            height: 80px;
+        }
+        @@media print {
+            body {
+                margin: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .btn-print {
+            padding: 10px 20px;
+            background-color: #0b3c5d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: right;">
+        <button onclick="window.print()" class="btn-print">🖨️ Tiến hành in / Lưu PDF</button>
+        <button onclick="window.history.back()" class="btn-print" style="background-color: #6c757d;">◀ Quay lại</button>
+    </div>
+
+    <div class="header">
+        <h2>BÁO CÁO KẾT QUẢ HỌC TẬP</h2>
+        <p>Học kỳ: @ViewBag.Semester</p>
+    </div>
+
+    <div class="metadata">
+        <table>
+            <tr>
+                <td width="50%"><strong>Khoa:</strong> @ViewBag.SelectedFaculty</td>
+                <td width="50%"><strong>Lớp hành chính:</strong> @ViewBag.SelectedClass</td>
+            </tr>
+            <tr>
+                <td><strong>Ngày lập báo cáo:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</td>
+                <td><strong>Tổng số sinh viên báo cáo:</strong> @Model.Count()</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th width="50">STT</th>
+                <th width="150">MSSV</th>
+                <th>Họ và Tên</th>
+                <th width="150" class="text-center">Điểm TBC (Hệ 10)</th>
+                <th width="150" class="text-center">Tích lũy (Hệ 4)</th>
+                <th width="150" class="text-center">Xếp loại</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int index = 1; }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-center">@index</td>
+                    <td>@item.MSSV</td>
+                    <td>@item.FullName</td>
+                    <td class="text-center">@item.GPA10.ToString("F2")</td>
+                    <td class="text-center">@item.GPA4.ToString("F2")</td>
+                    <td class="text-center"><strong>@item.Classification</strong></td>
+                </tr>
+                index++;
+            }
+        </tbody>
+    </table>
+
+    <div class="footer-sig">
+        <div class="sig-block">
+            <p><strong>Người lập báo cáo</strong></p>
+            <p style="font-style: italic; font-size: 0.9em;">(Ký và ghi rõ họ tên)</p>
+            <div class="sig-space"></div>
+        </div>
+        <div class="sig-block">
+            <p><strong>Xác nhận của Khoa/Trường</strong></p>
+            <p style="font-style: italic; font-size: 0.9em;">(Ký tên và đóng dấu)</p>
+            <div class="sig-space"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tự động kích hoạt hộp thoại in sau khi tải trang xong
+        window.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

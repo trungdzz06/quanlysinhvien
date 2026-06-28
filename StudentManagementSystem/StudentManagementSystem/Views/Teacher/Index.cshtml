@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Index.cshtml (Teacher)
  * Tổng quan: Giao diện danh sách quản lý nhân sự Giảng viên.
  * Chức năng: 
@@ -31,7 +31,13 @@
             ✅ @TempData["Success"]
         </div>
     }
-
+    @* ĐOẠN CODE THÊM MỚI: Xử lý thông báo lỗi khi xóa thất bại *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" style="padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-radius: 4px; margin-bottom: 20px;">
+            @TempData["Error"]
+        </div>
+    }
     <div class="action-bar" style="margin-bottom: 20px;">
         <a asp-action="Create" class="btn btn-success" style="text-decoration: none; padding: 10px 15px; background-color: #28a745; color: white; border-radius: 4px;">
             + Thêm Giảng Viên Mới
@@ -101,11 +107,26 @@
                             }
                         </td>
                         <td style="padding: 12px; text-align: center;">
+                            @* Nút Xem: Chuyển hướng đến trang Info để xem thông tin *@
+                            <a asp-action="Info" asp-route-id="@item.TeacherId" class="btn btn-primary"
+                               style="text-decoration: none; font-size: 1.2em; margin-right: 10px;" title="Xem hồ sơ">ℹ️</a>
+
                             @* Nút chỉnh sửa dẫn đến trang Edit hồ sơ *@
                             <a asp-action="Edit" asp-route-id="@item.TeacherId" class="btn btn-edit"
-                               style="text-decoration: none; font-size: 1.2em;" title="Chỉnh sửa hồ sơ">✏️</a>
-                            
-                            @* Lưu ý: Hiện chưa tích hợp nút Xóa do ràng buộc dữ liệu giảng viên với các lớp học phần *@
+                               style="text-decoration: none; font-size: 1.2em; margin-right: 10px;" title="Chỉnh sửa hồ sơ">✏️</a>
+
+                            @* Nút Reset Mật khẩu *@
+                            <form asp-action="ResetPassword" asp-route-id="@item.TeacherId" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc muốn khôi phục mật khẩu của giảng viên [@item.FullName] về mặc định \'Dainam@@123\' không?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" style="background: none; border: none; font-size: 1.2em; cursor: pointer; margin-right: 10px;" title="Khôi phục mật khẩu">🔑</button>
+                            </form>
+
+                            @* NÚT XÓA: Dùng Form để gọi thẳng hàm DeleteConfirmed trong Controller *@
+                            <form asp-action="Delete" asp-route-id="@item.TeacherId" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa giảng viên [@item.FullName] không?\nHành động này không thể hoàn tác!');">
+                                <button type="submit" style="background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 0;" title="Xóa hồ sơ">🗑️</button>
+                            </form>
                         </td>
                     </tr>
                 }
@@ -120,4 +141,26 @@
             }
         </tbody>
     </table>
+
+    <div class="pagination" style="margin-top: 20px; text-align: center;">
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-facultyId="@ViewBag.FacultyId" class="btn-page" style="text-decoration:none; padding: 5px 10px; background: #eee; border: 1px solid #ccc; border-radius: 4px; color: #333;">◀ Trước</a>
+        }
+        else
+        {
+            <span class="btn-page disabled" style="padding: 5px 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; color: #aaa; cursor: not-allowed;">◀ Trước</span>
+        }
+
+        <span class="page-info" style="margin: 0 15px; font-weight: 500;">Trang @ViewBag.CurrentPage / @Math.Max(1, ViewBag.TotalPages)</span>
+
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <a asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-facultyId="@ViewBag.FacultyId" class="btn-page" style="text-decoration:none; padding: 5px 10px; background: #eee; border: 1px solid #ccc; border-radius: 4px; color: #333;">Tiếp ▶</a>
+        }
+        else
+        {
+            <span class="btn-page disabled" style="padding: 5px 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; color: #aaa; cursor: not-allowed;">Tiếp ▶</span>
+        }
+    </div>
 </div>

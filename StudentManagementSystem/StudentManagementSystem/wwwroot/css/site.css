@@ -330,7 +330,72 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 0.5rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .menu-item {
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+    }
+
+    .content {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-bar form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-bar select, .filter-bar input, .filter-bar button {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .action-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-bar .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Bảng dữ liệu có thể cuộn ngang trên điện thoại */
+    .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .course-registration {
         grid-template-columns: 1fr;
     }
@@ -338,4 +403,38 @@ body {
     .classification-stats {
         flex-direction: column;
     }
+    
+    .student-profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .gpa-overview {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alerts */
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+}
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
 }

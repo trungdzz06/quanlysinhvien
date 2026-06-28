@@ -22,9 +22,6 @@
             <a asp-controller="Student" asp-action="Index" class="menu-item">
                 <span>👨‍🎓</span> Quản lý Hồ sơ
             </a>
-            <a asp-controller="Class" asp-action="Index" class="menu-item">
-                <span>🏫</span> Quản lý Lớp học
-            </a>
             <a asp-controller="CourseClass" asp-action="Index" class="menu-item">
                 <span>📚</span> Lớp Học Phần
             </a>
@@ -40,9 +37,13 @@
             <a asp-controller="Report" asp-action="Index" class="menu-item">
                 <span>📈</span> Báo cáo Thống kê
             </a>
+            <a class="menu-item" asp-controller="UserManagement" asp-action="Index">
+                <span>🛡️</span> Quản lý Phân quyền
+            </a>
             <a asp-controller="Settings" asp-action="Index" class="menu-item">
                 <span>⚙️</span> Cài đặt Hệ thống
             </a>
+         
         }
         
         @* * LOGIC PHÂN QUYỀN: GIẢNG VIÊN (TEACHER)
@@ -63,9 +64,6 @@
          *@
         else if (User.IsInRole("Student"))
         {
-            <a asp-controller="StudentPortal" asp-action="Index" class="menu-item">
-                <span>🏠</span> Trang chủ
-            </a>
             <a asp-controller="StudentPortal" asp-action="Grades" class="menu-item">
                 <span>📝</span> Xem Điểm
             </a>

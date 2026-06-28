@@ -3,7 +3,7 @@
  * Tên tệp tin: HomeController.cs
  * Tổng quan: Controller trung tâm quản lý trang tổng quan (Dashboard). 
  * Cung cấp các số liệu thống kê tổng quát và dữ liệu trực quan hóa.
- * Tác giả: Nhóm phát triển phần mềm
+ * Tác giả: Nhóm 4
  * Ngày tạo/sửa đổi: 05/05/2026
  * ==============================================================================
  */
@@ -25,10 +25,12 @@ namespace StudentManagementSystem.Controllers
 	public class HomeController : Controller
 	{
 		private readonly ApplicationDbContext _context;
+		private readonly IWebHostEnvironment _env;
 
-		public HomeController(ApplicationDbContext context)
+		public HomeController(ApplicationDbContext context, IWebHostEnvironment env)
 		{
 			_context = context;
+			_env = env;
 		}
 
 		/// <summary>
@@ -46,7 +48,32 @@ namespace StudentManagementSystem.Controllers
 			ViewBag.TotalStudents = await _context.Students.CountAsync();
 			ViewBag.TotalClasses = await _context.Classes.CountAsync();
 			ViewBag.TotalFaculties = await _context.Faculties.CountAsync();
-			ViewBag.TotalSubjects = 85; // Dữ liệu giả lập (Mock data) cho mục Môn học
+			ViewBag.TotalTeachers = await _context.Teachers.CountAsync();
+			ViewBag.TotalSubjects = await _context.Subjects.CountAsync();
+
+			// Đọc cấu hình thời gian sao lưu từ tệp systemsettings.json
+			string settingsPath = Path.Combine(_env.WebRootPath, "systemsettings.json");
+			DateTime lastBackupTime = DateTime.Now.AddHours(-12);
+			if (System.IO.File.Exists(settingsPath))
+			{
+				try
+				{
+					string json = System.IO.File.ReadAllText(settingsPath);
+					var settings = JsonSerializer.Deserialize<SystemSettings>(json);
+					if (settings != null)
+					{
+						lastBackupTime = settings.LastBackupTime;
+					}
+				}
+				catch
+				{
+					// Bỏ qua lỗi
+				}
+			}
+			ViewBag.LastBackupTime = lastBackupTime;
+
+			// Đếm động số lượng lớp học phần chưa phân công giảng viên
+			ViewBag.UnassignedClassesCount = await _context.CourseClasses.CountAsync(c => string.IsNullOrEmpty(c.TeacherId));
 
 			/* * LOGIC PHỨC TẠP: XỬ LÝ DỮ LIỆU BIỂU ĐỒ (CHART DATA)
              * Quy trình:
@@ -64,7 +91,8 @@ namespace StudentManagementSystem.Controllers
 				.ToListAsync();
 
 			// Gán dữ liệu thống kê vào ViewBag để truyền ra giao diện
-			ViewBag.FacultyStats = facultyStats;
+			ViewBag.FacultyLabels = JsonSerializer.Serialize(facultyStats.Select(f => f.Name).ToList());
+			ViewBag.FacultyData = JsonSerializer.Serialize(facultyStats.Select(f => f.StudentCount).ToList());
 
 			return View();
 		}

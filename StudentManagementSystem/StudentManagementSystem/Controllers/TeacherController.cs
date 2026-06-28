@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: TeacherController.cs
  * Tổng quan: Module quản lý nhân sự giảng viên trong hệ thống.
@@ -30,73 +30,97 @@ namespace StudentManagementSystem.Controllers
 			_context = context;
 		}
 
-		/// <summary>
-		/// HÀM (METHOD): Index
-		/// Mục đích: Hiển thị danh sách giảng viên toàn trường kèm bộ lọc theo Khoa.
-		/// Tham số: facultyId (Lọc theo đơn vị công tác), role (Lọc theo chức vụ - nếu cần mở rộng).
-		/// </summary>
-		public async Task<IActionResult> Index(string facultyId, string role)
+		// 1. DANH SÁCH: Hiển thị danh sách giảng viên toàn trường kèm bộ lọc theo Khoa và phân trang
+		public async Task<IActionResult> Index(string facultyId, string role, int page = 1)
 		{
-			/* * LOGIC PHỨC TẠP: TRUY VẤN LINQ KÈM LIÊN KẾT (EAGER LOADING)
-             * Sử dụng .Include(t => t.Faculty) để nạp trước thông tin Khoa của giảng viên. 
-             * Điều này giúp tối ưu hóa số lượng câu lệnh SQL khi hiển thị tên Khoa trên danh sách, 
-             * ngăn chặn lỗi hiệu năng (N+1 Select problem).
-             */
+			int pageSize = 10; // Giới hạn hiển thị tối đa 10 giảng viên trên mỗi trang
+
+			// Truy vấn nạp kèm thông tin Khoa (Faculty)
 			var teachers = _context.Teachers
 				.Include(t => t.Faculty)
 				.AsQueryable();
 
-			// Áp dụng lọc theo Khoa nếu tham số facultyId được truyền từ giao diện
+			// Áp dụng lọc theo Khoa nếu tham số facultyId được chọn từ giao diện
 			if (!string.IsNullOrEmpty(facultyId))
 			{
 				teachers = teachers.Where(t => t.FacultyId == facultyId);
 			}
 
-			// Lấy danh sách Khoa đổ vào ViewBag để hiển thị trên thẻ <select> ở View
+			// Tính toán tổng số trang
+			int totalItems = await teachers.CountAsync();
+			int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+			// Ràng buộc số trang hợp lệ
+			if (page < 1) page = 1;
+			if (page > totalPages && totalPages > 0) page = totalPages;
+
+			// Phân trang dữ liệu ở mức database
+			var pagedTeachers = await teachers
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.ToListAsync();
+
+			// Lưu trạng thái và dữ liệu vào ViewBag để hiển thị trên View
+			ViewBag.CurrentPage = page;
+			ViewBag.TotalPages = totalPages;
+			ViewBag.FacultyId = facultyId;
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
-			return View(await teachers.ToListAsync());
+			
+			return View(pagedTeachers);
 		}
 
-		/// <summary>
-		/// HÀM (METHOD): Create [GET]
-		/// Mục đích: Hiển thị form trống để khởi tạo hồ sơ giảng viên mới.
-		/// </summary>
+		// 2. TẠO MỚI (GET): Hiển thị form trống cho phép thêm giảng viên mới
 		public async Task<IActionResult> Create()
 		{
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
 			return View();
 		}
 
-		/// <summary>
-		/// HÀM (METHOD): Create [POST]
-		/// Mục đích: Tiếp nhận thông tin từ form, gán trạng thái mặc định và lưu vào CSDL.
-		/// </summary>
+		// 2. TẠO MỚI (POST): Tiếp nhận thông tin từ form và thực hiện lưu giảng viên mới
 		[HttpPost]
-		[ValidateAntiForgeryToken]
+		[ValidateAntiForgeryToken] // Chống tấn công giả mạo yêu cầu (CSRF)
 		public async Task<IActionResult> Create(Teacher teacher)
 		{
-			// Kiểm tra các ràng buộc dữ liệu (Required, Email, Phone...) từ Model
+			// Kiểm tra các ràng buộc dữ liệu phía Server (Validation)
 			if (ModelState.IsValid)
 			{
-				// Logic nghiệp vụ: Giảng viên mới tạo mặc định sẽ ở trạng thái "Active" (Đang công tác)
-				teacher.Status = "Active";
-				_context.Add(teacher);
-				await _context.SaveChangesAsync();
+				// Kiểm tra mã giảng viên (TeacherId) đã tồn tại trong DB chưa
+				if (await _context.Teachers.AnyAsync(t => t.TeacherId == teacher.TeacherId))
+				{
+					ModelState.AddModelError("TeacherId", "Mã giảng viên này đã tồn tại trong hệ thống.");
+				}
+				else
+				{
+					// Giảng viên mới tạo mặc định ở trạng thái "Active" và cấp mật khẩu mã hóa mặc định
+					teacher.Status = "Active";
+					teacher.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Dainam@123");
+					_context.Add(teacher);
+					await _context.SaveChangesAsync();
 
-				// TempData: Thông báo thành công chỉ hiển thị một lần sau khi Redirect
-				TempData["Success"] = "Đã thêm giảng viên thành công!";
-				return RedirectToAction(nameof(Index));
+					TempData["Success"] = "Đã thêm giảng viên thành công!";
+					return RedirectToAction(nameof(Index));
+				}
 			}
 
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
 			return View(teacher);
 		}
 
-		/// <summary>
-		/// HÀM (METHOD): Edit [GET]
-		/// Mục đích: Truy xuất thông tin giảng viên hiện tại để chỉnh sửa.
-		/// Tham số: id (Mã giảng viên).
-		/// </summary>
+		// 3. CHI TIẾT (GET): Chỉ xem thông tin chi tiết của giảng viên (chế độ chỉ đọc)
+		[HttpGet]
+		public async Task<IActionResult> Info(string id)
+		{
+			if (id == null) return NotFound();
+			// Tìm giảng viên và nạp kèm thông tin Khoa
+			var teacher = await _context.Teachers
+				.Include(t => t.Faculty)
+				.FirstOrDefaultAsync(t => t.TeacherId == id);
+			if (teacher == null) return NotFound();
+
+			return View(teacher);
+		}
+
+		// 4. CẬP NHẬT (GET): Tải dữ liệu hồ sơ giảng viên hiện tại và hiển thị lên form sửa
 		public async Task<IActionResult> Edit(string id)
 		{
 			var teacher = await _context.Teachers.FindAsync(id);
@@ -109,13 +133,42 @@ namespace StudentManagementSystem.Controllers
 			return View(teacher);
 		}
 
-		/// <summary>
-		/// HÀM (METHOD): Edit [POST]
-		/// Mục đích: Cập nhật các thay đổi trong hồ sơ giảng viên.
-		/// Logic: Xử lý lỗi đồng thời (Concurrency) để đảm bảo tính toàn vẹn dữ liệu.
-		/// </summary>
+		// 5. XÓA (POST): Xác nhận và xóa cứng hồ sơ giảng viên khỏi cơ sở dữ liệu
+		[HttpPost, ActionName("Delete")]
+		[ValidateAntiForgeryToken] // Chống tấn công giả mạo yêu cầu (CSRF)
+		public async Task<IActionResult> DeleteConfirmed(string id)
+		{
+			var teacher = await _context.Teachers.FindAsync(id);
+			if (teacher == null)
+			{
+				return NotFound();
+			}
+
+			// Ràng buộc nghiệp vụ: Giảng viên đang được phân công dạy lớp học phần thì không được xóa
+			bool hasClasses = await _context.CourseClasses.AnyAsync(c => c.TeacherId == id);
+			if (hasClasses)
+			{
+				TempData["Error"] = "❌ LỖI: Không thể xóa giảng viên này vì đang được phân công giảng dạy lớp học phần. Vui lòng cập nhật trạng thái thay vì xóa.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			try
+			{
+				_context.Teachers.Remove(teacher);
+				await _context.SaveChangesAsync();
+				TempData["Success"] = "Đã xóa hồ sơ giảng viên thành công!";
+			}
+			catch (DbUpdateException)
+			{
+				TempData["Error"] = "❌ LỖI: Ràng buộc cơ sở dữ liệu. Không thể xóa giảng viên này!";
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		// 4. CẬP NHẬT (POST): Tiếp nhận dữ liệu chỉnh sửa hồ sơ giảng viên và lưu lại
 		[HttpPost]
-		[ValidateAntiForgeryToken]
+		[ValidateAntiForgeryToken] // Chống tấn công giả mạo yêu cầu (CSRF)
 		public async Task<IActionResult> Edit(string id, Teacher teacher)
 		{
 			if (id != teacher.TeacherId)
@@ -127,6 +180,10 @@ namespace StudentManagementSystem.Controllers
 			{
 				try
 				{
+					// Lấy lại PasswordHash cũ từ cơ sở dữ liệu để tránh bị ghi đè thành null do không có trên form
+					var existingTeacher = await _context.Teachers.AsNoTracking().FirstOrDefaultAsync(t => t.TeacherId == id);
+					teacher.PasswordHash = existingTeacher?.PasswordHash;
+
 					_context.Update(teacher);
 					await _context.SaveChangesAsync();
 					TempData["Success"] = "Đã cập nhật thông tin giảng viên!";
@@ -134,16 +191,29 @@ namespace StudentManagementSystem.Controllers
 				}
 				catch (DbUpdateConcurrencyException)
 				{
-					/* * LOGIC PHỨC TẠP: XỬ LÝ LỖI TRUY CẬP ĐỒNG THỜI
-                     * Xảy ra khi có hai Admin cùng cập nhật hồ sơ của một giảng viên 
-                     * tại cùng một thời điểm. Hệ thống sẽ ném lỗi để tránh ghi đè dữ liệu sai lệch.
-                     */
-					throw;
+					throw; // Ném lỗi tranh chấp dữ liệu đồng thời
 				}
 			}
 
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
 			return View(teacher);
+		}
+
+		// 6. RESET MẬT KHẨU (POST): Đặt lại mật khẩu mặc định 'Dainam@123' cho giảng viên
+		[HttpPost]
+		[ValidateAntiForgeryToken] // Chống tấn công giả mạo yêu cầu (CSRF)
+		public async Task<IActionResult> ResetPassword(string id)
+		{
+			var teacher = await _context.Teachers.FindAsync(id);
+			if (teacher == null) return NotFound();
+
+			// Cập nhật lại mật khẩu mặc định và Hash lại
+			teacher.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Dainam@123");
+			_context.Update(teacher);
+			await _context.SaveChangesAsync();
+
+			TempData["Success"] = $"Đã reset mật khẩu cho GV {teacher.FullName} thành 'Dainam@123'.";
+			return RedirectToAction(nameof(Index));
 		}
 	}
 }

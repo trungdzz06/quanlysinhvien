@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: StudentPortalController.cs
  * Tổng quan: Module dành riêng cho sinh viên, cho phép xem điểm, thống kê học tập 
@@ -24,10 +24,33 @@ namespace StudentManagementSystem.Controllers
 	public class StudentPortalController : Controller
 	{
 		private readonly ApplicationDbContext _context;
+		private readonly IWebHostEnvironment _env;
 
-		public StudentPortalController(ApplicationDbContext context)
+		public StudentPortalController(ApplicationDbContext context, IWebHostEnvironment env)
 		{
 			_context = context;
+			_env = env;
+		}
+
+		private string LoadCurrentSemester()
+		{
+			string path = Path.Combine(_env.WebRootPath, "systemsettings.json");
+			if (System.IO.File.Exists(path))
+			{
+				try
+				{
+					string json = System.IO.File.ReadAllText(path);
+					using (var doc = System.Text.Json.JsonDocument.Parse(json))
+					{
+						return doc.RootElement.GetProperty("CurrentSemester").GetString() ?? "Học kỳ 1 - 2024";
+					}
+				}
+				catch
+				{
+					// Fallback
+				}
+			}
+			return "Học kỳ 1 - 2024";
 		}
 
 		/// <summary>
@@ -57,7 +80,13 @@ namespace StudentManagementSystem.Controllers
 			{
 				ViewBag.GPA10 = student.Grades.Average(g => g.TotalScore);
 				ViewBag.GPA4 = ConvertToGPA4(ViewBag.GPA10);
-				ViewBag.TotalCredits = student.Grades.Sum(g => 3); // Giả lập mỗi môn 3 tín chỉ
+				
+				var subjectCodes = student.Grades.Select(g => g.SubjectCode).ToList();
+				var subjects = await _context.Subjects
+					.Where(s => subjectCodes.Contains(s.SubjectCode))
+					.ToDictionaryAsync(s => s.SubjectCode, s => s.Credits);
+
+				ViewBag.TotalCredits = student.Grades.Sum(g => (g.SubjectCode != null && subjects.TryGetValue(g.SubjectCode, out int credits)) ? credits : 0);
 				ViewBag.Classification = GetClassification(ViewBag.GPA10);
 			}
 			else
@@ -78,6 +107,10 @@ namespace StudentManagementSystem.Controllers
 		/// </summary>
 		public async Task<IActionResult> Grades(string semester)
 		{
+			if (string.IsNullOrEmpty(semester))
+			{
+				semester = LoadCurrentSemester();
+			}
 			var username = User.FindFirst("Username")?.Value;
 			var student = await _context.Students
 				.Include(s => s.Grades)
@@ -113,7 +146,7 @@ namespace StudentManagementSystem.Controllers
 		/// </summary>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> RegisterCourse(string courseClassId, string semester)
+		public async Task<IActionResult> Register(string courseClassId, string semester)
 		{
 			var username = User.FindFirst("Username")?.Value;
 			var student = await _context.Students
@@ -134,18 +167,29 @@ namespace StudentManagementSystem.Controllers
 				return RedirectToAction(nameof(Register), new { semester });
 			}
 
+			if (courseClass.Status != "Mở đăng ký")
+			{
+				TempData["Error"] = $"Lớp học phần này đang ở trạng thái '{courseClass.Status}' và không thể đăng ký!";
+				return RedirectToAction(nameof(Register), new { semester });
+			}
+
 			if (courseClass.CurrentStudents >= courseClass.MaxStudents)
 			{
 				TempData["Error"] = "Lớp đã đầy!";
 				return RedirectToAction(nameof(Register), new { semester });
 			}
 
-			var existing = await _context.Registrations
-				.FirstOrDefaultAsync(r => r.StudentId == student.MSSV && r.CourseClassId == courseClassId);
+			// Thay vì chỉ kiểm tra CourseClassId, hệ thống sẽ kiểm tra xem sinh viên đã đăng ký
+			// môn học này (SubjectCode) trong kỳ này chưa.
+			var registeredCourseClasses = await _context.Registrations
+				.Include(r => r.CourseClass)
+				.Where(r => r.StudentId == student.MSSV && r.Semester == semester)
+				.Select(r => r.CourseClass.SubjectCode)
+				.ToListAsync();
 
-			if (existing != null)
+			if (registeredCourseClasses.Contains(courseClass.SubjectCode))
 			{
-				TempData["Error"] = "Bạn đã đăng ký lớp này rồi!";
+				TempData["Error"] = "Bạn đã đăng ký môn học này ở một lớp khác!";
 				return RedirectToAction(nameof(Register), new { semester });
 			}
 
@@ -160,6 +204,12 @@ namespace StudentManagementSystem.Controllers
 			};
 
 			courseClass.CurrentStudents++;
+			
+			// Tự động chuyển trạng thái nếu lớp đã đầy
+			if (courseClass.CurrentStudents >= courseClass.MaxStudents)
+			{
+				courseClass.Status = "Đã đầy";
+			}
 
 			_context.Registrations.Add(registration);
 			_context.Update(courseClass);
@@ -190,11 +240,52 @@ namespace StudentManagementSystem.Controllers
 
 			registration.CourseClass.CurrentStudents--;
 
+			// Tự động chuyển trạng thái lại "Mở đăng ký" nếu có chỗ trống và lớp đang "Đã đầy"
+			if (registration.CourseClass.CurrentStudents < registration.CourseClass.MaxStudents && registration.CourseClass.Status == "Đã đầy")
+			{
+				registration.CourseClass.Status = "Mở đăng ký";
+			}
+
 			_context.Registrations.Remove(registration);
 			_context.Update(registration.CourseClass);
 			await _context.SaveChangesAsync();
 
 			TempData["Success"] = "Đã hủy đăng ký!";
+			return RedirectToAction(nameof(Register), new { semester });
+		}
+
+		/// <summary>
+		/// HÀM (METHOD): FinalizeRegistration [POST]
+		/// Mục đích: Chốt toàn bộ đăng ký trong học kỳ hiện tại để hoàn thành quy trình 3.
+		/// </summary>
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> FinalizeRegistration(string semester)
+		{
+			var username = User.FindFirst("Username")?.Value;
+			var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == username || s.MSSV == username);
+
+			if (student == null) return NotFound();
+
+			var registrations = await _context.Registrations
+				.Where(r => r.StudentId == student.MSSV && r.Semester == semester && r.Status == "Đã đăng ký")
+				.ToListAsync();
+
+			if (!registrations.Any())
+			{
+				TempData["Error"] = "Bạn chưa có học phần nào để chốt!";
+				return RedirectToAction(nameof(Register), new { semester });
+			}
+
+			foreach (var reg in registrations)
+			{
+				reg.Status = "Đã chốt";
+			}
+
+			_context.UpdateRange(registrations);
+			await _context.SaveChangesAsync();
+
+			TempData["Success"] = "Đã chốt đăng ký thành công! Bạn không thể thay đổi nữa.";
 			return RedirectToAction(nameof(Register), new { semester });
 		}
 
@@ -222,8 +313,12 @@ namespace StudentManagementSystem.Controllers
 		}
 
 		// Chức năng lấy danh sách đăng ký học phần (Màn hình 14)
-		public async Task<IActionResult> Register(string semester = "Học kỳ 1 - 2024")
+		public async Task<IActionResult> Register(string semester)
 		{
+			if (string.IsNullOrEmpty(semester))
+			{
+				semester = LoadCurrentSemester();
+			}
 			var username = User.FindFirst("Username")?.Value;
 			var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == username || s.MSSV == username);
 			if (student == null) return NotFound();
@@ -235,6 +330,8 @@ namespace StudentManagementSystem.Controllers
 			ViewBag.RegisteredClasses = registeredClasses;
 			ViewBag.TotalCredits = registeredClasses.Sum(r => r.CourseClass.Subject.Credits);
 			ViewBag.Semester = semester;
+			ViewBag.IsFinalized = registeredClasses.Any(r => r.Status == "Đã chốt");
+
 			return View();
 		}
 	}

@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Entry.cshtml (Grades)
  * Tổng quan: Giao diện bảng nhập điểm học phần tập trung cho toàn bộ lớp học.
  * Chức năng: Cho phép nhập điểm thành phần, tự động tính tổng kết và quy đổi điểm chữ.
@@ -26,38 +26,35 @@
      *@
     <div class="filter-bar">
         <form method="get" asp-action="Entry">
-            <select name="classId" onchange="this.form.submit()">
-                <option value="">-- Chọn lớp --</option>
-                @if (ViewBag.Classes != null)
+            <select name="courseClassId" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 450px;">
+                <option value="">-- Chọn Lớp Học Phần --</option>
+                @if (ViewBag.CourseClasses != null)
                 {
-                    foreach (var cls in ViewBag.Classes)
+                    foreach (var cc in ViewBag.CourseClasses)
                     {
-                        <!option value="@cls.ClassId" @(ViewBag.SelectedClass == cls.ClassId ? "selected" : "")>@cls.ClassName</!option>
+                        <!option value="@cc.CourseClassId" @(ViewBag.SelectedCourseClass == cc.CourseClassId ? "selected" : "")>
+                            @cc.CourseClassId - @cc.Subject?.SubjectName (@cc.Teacher?.FullName) [Kỳ: @cc.Semester]
+                        </!option>
                     }
                 }
             </select>
-
-            <select name="subjectCode" onchange="this.form.submit()">
-                <option value="">-- Chọn môn học --</option>
-                @if (ViewBag.Subjects != null)
-                {
-                    foreach (var sub in ViewBag.Subjects)
-                    {
-                        <!option value="@sub.SubjectCode" @(ViewBag.SelectedSubject == sub.SubjectCode ? "selected" : "")>@sub.SubjectName</!option>
-                    }
-                }
-            </select>
-            <button type="submit" class="btn btn-search">Lấy danh sách</button>
+            <button type="submit" class="btn btn-search">Tải danh sách</button>
         </form>
     </div>
 
     @* * MODULE: BẢNG NHẬP ĐIỂM TẬP TRUNG (BULK ENTRY)
      * Toàn bộ bảng điểm nằm trong một Form duy nhất để lưu hàng loạt (Save All).
      *@
+     @if (!string.IsNullOrEmpty(ViewBag.SelectedCourseClass))
+{
     <form asp-action="Save" method="post" id="gradeForm">
         @* Các trường ẩn để gửi thông tin định danh môn học và lớp về Controller *@
-        <input type="hidden" name="subjectCode" value="@ViewBag.SelectedSubject" />
-        <input type="hidden" name="classId" value="@ViewBag.SelectedClass" />
+        <input type="hidden" name="subjectCode" value="@ViewBag.SelectedSubjectCode" />
+        <input type="hidden" name="courseClassId" value="@ViewBag.SelectedCourseClass" />
+
+        <div style="margin-bottom: 15px; font-weight: bold; color: #0b3c5d;">
+            📖 Môn học: @ViewBag.SelectedSubjectName | 📅 Học kỳ: @ViewBag.SelectedSemester
+        </div>
 
         <table class="data-table">
             <thead>
@@ -76,8 +73,8 @@
                 {
                     for (int i = 0; i < Model.Count; i++)
                     {
-                        @* Tìm kiếm bản ghi điểm đã tồn tại cho môn học này (nếu có) *@
-                        var grade = Model[i].Grades?.FirstOrDefault(g => g.SubjectCode == ViewBag.SelectedSubject) ?? new Grade();
+                        @* Tìm kiếm bản ghi điểm đã tồn tại cho môn học này và học kỳ này (nếu có) *@
+                        var grade = Model[i].Grades?.FirstOrDefault(g => g.SubjectCode == ViewBag.SelectedSubjectCode && g.Semester == ViewBag.SelectedSemester) ?? new Grade();
                         
                         <tr class="grade-row">
                             <td>@Model[i].MSSV</td>
@@ -115,7 +112,7 @@
             </tbody>
         </table>
 
-        @if (!string.IsNullOrEmpty(ViewBag.SelectedSubject))
+        @if (Model != null && Model.Any())
         {
             <div class="action-bar-bottom" style="margin-top: 20px; text-align: right;">
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Bạn có chắc chắn muốn lưu toàn bộ bảng điểm này?');">
@@ -124,6 +121,15 @@
             </div>
         }
     </form>
+    }
+    else
+{
+    <div style="text-align: center; padding: 50px; color: #666; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc; margin-top: 20px;">
+        <h3>Vui lòng chọn Lớp học phần</h3>
+        <p>Hệ thống cần biết bạn muốn nhập điểm cho lớp học phần nào trước khi hiển thị danh sách sinh viên đăng ký.</p>
+    </div>
+}
+
 </div>
 
 @section Scripts {

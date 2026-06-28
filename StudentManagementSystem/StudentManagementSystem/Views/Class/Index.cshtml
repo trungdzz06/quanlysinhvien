@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Index.cshtml
  * Tổng quan: Giao diện hiển thị danh sách toàn bộ các Lớp hành chính.
  * Chức năng: Hỗ trợ lọc theo Khoa, tìm kiếm từ khóa và cung cấp các lối tắt CRUD.
@@ -48,7 +48,9 @@
                 {
                     foreach (var faculty in ViewBag.Faculties)
                     {
-                        <option value="@faculty.FacultyId">@faculty.FacultyName</option>
+                        <!option value="@faculty.FacultyId" @(Context.Request.Query["facultyId"] == faculty.FacultyId ? "selected" : "")>
+                            @faculty.FacultyName
+                        </!option>
                     }
                 }
             </select>

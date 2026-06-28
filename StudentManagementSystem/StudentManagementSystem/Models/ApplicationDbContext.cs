@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: ApplicationDbContext.cs
  * Tổng quan: Lớp trung tâm quản lý kết nối cơ sở dữ liệu và cấu hình thực thể (ORM).
@@ -68,33 +68,68 @@ namespace StudentManagementSystem.Models
 				new Subject { SubjectCode = "CNPM_01", SubjectName = "Công nghệ phần mềm", Credits = 3, FacultyId = "CNTT" },
 				new Subject { SubjectCode = "CSDL_01", SubjectName = "Cơ sở dữ liệu", Credits = 3, FacultyId = "CNTT" },
 				new Subject { SubjectCode = "LTW_01", SubjectName = "Lập trình Web", Credits = 3, FacultyId = "CNTT" },
-				new Subject { SubjectCode = "TRR_01", SubjectName = "Toán rời rạc", Credits = 2, FacultyId = "CB" }
+				new Subject { SubjectCode = "TRR_01", SubjectName = "Toán rời rạc", Credits = 2, FacultyId = "CB" },
+				new Subject { SubjectCode = "KTLT_01", SubjectName = "Kỹ thuật lập trình", Credits = 3, FacultyId = "CNTT" },
+				new Subject { SubjectCode = "MMT_01", SubjectName = "Mạng máy tính", Credits = 3, FacultyId = "CNTT" },
+				new Subject { SubjectCode = "KTCT_01", SubjectName = "Kinh tế chính trị", Credits = 2, FacultyId = "KT" },
+				new Subject { SubjectCode = "NLCB_01", SubjectName = "Nguyên lý cơ bản", Credits = 3, FacultyId = "KT" },
+				new Subject { SubjectCode = "VLDC_01", SubjectName = "Vật lý đại cương", Credits = 2, FacultyId = "CB" }
 			);
 
 			// --- Seed Teachers: Hồ sơ giảng viên quản lý theo đơn vị Khoa ---
 			modelBuilder.Entity<Teacher>().HasData(
 				new Teacher { TeacherId = "GV_001", FullName = "Phạm Thị Tố Nga", FacultyId = "CNTT", Email = "ptnga@dainam.edu.vn", Status = "Active" },
 				new Teacher { TeacherId = "GV_002", FullName = "Nguyễn Văn A", FacultyId = "CNTT", Email = "nva@dainam.edu.vn", Status = "Active" },
-				new Teacher { TeacherId = "GV_003", FullName = "Trần Bảo Châu", FacultyId = "CNTT", Email = "tbc@dainam.edu.vn", Status = "Active" }
+				new Teacher { TeacherId = "GV_003", FullName = "Trần Bảo Châu", FacultyId = "CNTT", Email = "tbc@dainam.edu.vn", Status = "Active" },
+				new Teacher { TeacherId = "GV_004", FullName = "Lê Mai Anh", FacultyId = "KT", Email = "lma@dainam.edu.vn", Status = "Active" },
+				new Teacher { TeacherId = "GV_005", FullName = "Hoàng Tuấn", FacultyId = "CB", Email = "ht@dainam.edu.vn", Status = "Active" },
+				new Teacher { TeacherId = "GV_006", FullName = "Đinh Quang Minh", FacultyId = "CK", Email = "dqm@dainam.edu.vn", Status = "Active" }
 			);
 
 			// --- Seed CourseClasses: Các lớp học phần mở trong học kỳ cụ thể ---
 			modelBuilder.Entity<CourseClass>().HasData(
-				new CourseClass { CourseClassId = "LHP_CNPM_01", SubjectCode = "CNPM_01", TeacherId = "GV_001", Semester = "Học kỳ 1 - 2024", MaxStudents = 50, CurrentStudents = 45, Status = "Mở đăng ký", Schedule = "Thứ 3 (Ca 1)" },
-				new CourseClass { CourseClassId = "LHP_CSDL_02", SubjectCode = "CSDL_01", TeacherId = "GV_002", Semester = "Học kỳ 1 - 2024", MaxStudents = 50, CurrentStudents = 50, Status = "Đã đầy", Schedule = "Thứ 5 (Ca 2)" },
-				new CourseClass { CourseClassId = "LHP_LTW_01", SubjectCode = "LTW_01", TeacherId = "GV_003", Semester = "Học kỳ 1 - 2024", MaxStudents = 40, CurrentStudents = 0, Status = "Chờ duyệt", Schedule = "Thứ 2 (Ca 3)" }
+				new CourseClass { CourseClassId = "LHP_CNPM_01", SubjectCode = "CNPM_01", TeacherId = "GV_001", Semester = "Học kỳ 1 - 2024", MaxStudents = 50, CurrentStudents = 0, Status = "Mở đăng ký", Schedule = "Thứ 3 (Ca 1)" },
+				new CourseClass { CourseClassId = "LHP_CSDL_02", SubjectCode = "CSDL_01", TeacherId = "GV_002", Semester = "Học kỳ 1 - 2024", MaxStudents = 50, CurrentStudents = 0, Status = "Mở đăng ký", Schedule = "Thứ 5 (Ca 2)" },
+				new CourseClass { CourseClassId = "LHP_LTW_01", SubjectCode = "LTW_01", TeacherId = "GV_003", Semester = "Học kỳ 1 - 2024", MaxStudents = 40, CurrentStudents = 0, Status = "Chờ duyệt", Schedule = "Thứ 2 (Ca 3)" },
+				new CourseClass { CourseClassId = "LHP_KTLT_01", SubjectCode = "KTLT_01", TeacherId = "GV_001", Semester = "Học kỳ 1 - 2024", MaxStudents = 50, CurrentStudents = 2, Status = "Mở đăng ký", Schedule = "Thứ 6 (Ca 1)" },
+				new CourseClass { CourseClassId = "LHP_MMT_01", SubjectCode = "MMT_01", TeacherId = "GV_002", Semester = "Học kỳ 1 - 2024", MaxStudents = 45, CurrentStudents = 1, Status = "Mở đăng ký", Schedule = "Thứ 4 (Ca 3)" },
+				new CourseClass { CourseClassId = "LHP_KTCT_01", SubjectCode = "KTCT_01", TeacherId = "GV_004", Semester = "Học kỳ 1 - 2024", MaxStudents = 60, CurrentStudents = 0, Status = "Mở đăng ký", Schedule = "Thứ 7 (Ca 2)" }
 			);
 
 			// --- Seed Classes: Lớp hành chính để quản lý sinh viên theo khóa ---
 			modelBuilder.Entity<Class>().HasData(
 				new Class { ClassId = "CNTT18-06", ClassName = "CNTT 18-06", FacultyId = "CNTT" },
-				new Class { ClassId = "CNTT18-07", ClassName = "CNTT 18-07", FacultyId = "CNTT" }
+				new Class { ClassId = "CNTT18-07", ClassName = "CNTT 18-07", FacultyId = "CNTT" },
+				new Class { ClassId = "KT18-01", ClassName = "Kinh tế 18-01", FacultyId = "KT" },
+				new Class { ClassId = "CK18-01", ClassName = "Cơ khí 18-01", FacultyId = "CK" }
 			);
 
 			// --- Seed Students: Thông tin sinh viên mẫu để kiểm thử chức năng ---
+			// Hash cố định cho mật khẩu "Dainam@123" để sinh viên có thể đăng nhập ngay bằng mật khẩu mặc định
+			string defaultHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o"; // Valid BCrypt hash
+			
 			modelBuilder.Entity<Student>().HasData(
-				new Student { MSSV = "18710205", FullName = "Nguyễn Quang Trung", DateOfBirth = new DateTime(2000, 2, 20), Gender = "Nam", Hometown = "Hà Nội", ClassId = "CNTT18-06", FacultyId = "CNTT", Email = "trung@xxx.edu", Status = "Đang học" },
-				new Student { MSSV = "18710204", FullName = "Đào Ngọc Nam", DateOfBirth = new DateTime(2000, 5, 15), Gender = "Nam", Hometown = "Hà Nội", ClassId = "CNTT18-06", FacultyId = "CNTT", Email = "nam@xxx.edu", Status = "Đang học" }
+				new Student { MSSV = "18710205", FullName = "Nguyễn Quang Trung", DateOfBirth = new DateTime(2000, 2, 20), Gender = "Nam", Hometown = "Hà Nội", ClassId = "CNTT18-06", FacultyId = "CNTT", Email = "trung@xxx.edu", Status = "Đang học", PasswordHash = defaultHash },
+				new Student { MSSV = "18710204", FullName = "Đào Ngọc Nam", DateOfBirth = new DateTime(2000, 5, 15), Gender = "Nam", Hometown = "Hà Nội", ClassId = "CNTT18-06", FacultyId = "CNTT", Email = "nam@xxx.edu", Status = "Đang học", PasswordHash = defaultHash },
+				new Student { MSSV = "18710206", FullName = "Trần Thị Lan", DateOfBirth = new DateTime(2001, 3, 10), Gender = "Nữ", Hometown = "Hải Phòng", ClassId = "CNTT18-07", FacultyId = "CNTT", Email = "lan@xxx.edu", Status = "Đang học", PasswordHash = defaultHash },
+				new Student { MSSV = "18710207", FullName = "Lê Văn Bách", DateOfBirth = new DateTime(2000, 8, 22), Gender = "Nam", Hometown = "Nam Định", ClassId = "KT18-01", FacultyId = "KT", Email = "bach@xxx.edu", Status = "Đang học", PasswordHash = defaultHash },
+				new Student { MSSV = "18710208", FullName = "Phạm Quang Huy", DateOfBirth = new DateTime(2000, 11, 5), Gender = "Nam", Hometown = "Hà Nội", ClassId = "CNTT18-06", FacultyId = "CNTT", Email = "huy@xxx.edu", Status = "Đang học", PasswordHash = defaultHash },
+				new Student { MSSV = "18710209", FullName = "Nguyễn Bích Ngọc", DateOfBirth = new DateTime(2001, 1, 15), Gender = "Nữ", Hometown = "Thái Bình", ClassId = "KT18-01", FacultyId = "KT", Email = "ngoc@xxx.edu", Status = "Đang học", PasswordHash = defaultHash }
+			);
+
+			// --- Seed Registrations: Đăng ký môn học ---
+			modelBuilder.Entity<Registration>().HasData(
+				new Registration { RegistrationId = 1, StudentId = "18710205", CourseClassId = "LHP_KTLT_01", RegistrationDate = new DateTime(2024, 8, 15), Status = "Đã đăng ký", Semester = "Học kỳ 1 - 2024", Year = 2024 },
+				new Registration { RegistrationId = 2, StudentId = "18710206", CourseClassId = "LHP_KTLT_01", RegistrationDate = new DateTime(2024, 8, 16), Status = "Đã đăng ký", Semester = "Học kỳ 1 - 2024", Year = 2024 },
+				new Registration { RegistrationId = 3, StudentId = "18710205", CourseClassId = "LHP_MMT_01", RegistrationDate = new DateTime(2024, 8, 15), Status = "Đã đăng ký", Semester = "Học kỳ 1 - 2024", Year = 2024 }
+			);
+
+			// --- Seed Grades: Bảng điểm quá khứ ---
+			modelBuilder.Entity<Grade>().HasData(
+				new Grade { Id = 1, StudentId = "18710205", SubjectCode = "CNPM_01", SubjectName = "Công nghệ phần mềm", Attendance = 9, Midterm = 8, Final = 8.5m, TotalScore = 8.4m, LetterGrade = "B+", Semester = "Học kỳ 2 - 2023", Year = 2023 },
+				new Grade { Id = 2, StudentId = "18710205", SubjectCode = "CSDL_01", SubjectName = "Cơ sở dữ liệu", Attendance = 10, Midterm = 9, Final = 9, TotalScore = 9.1m, LetterGrade = "A", Semester = "Học kỳ 2 - 2023", Year = 2023 },
+				new Grade { Id = 3, StudentId = "18710204", SubjectCode = "CNPM_01", SubjectName = "Công nghệ phần mềm", Attendance = 8, Midterm = 7, Final = 6, TotalScore = 6.5m, LetterGrade = "C+", Semester = "Học kỳ 2 - 2023", Year = 2023 },
+				new Grade { Id = 4, StudentId = "18710206", SubjectCode = "TRR_01", SubjectName = "Toán rời rạc", Attendance = 10, Midterm = 8.5m, Final = 7.5m, TotalScore = 8.05m, LetterGrade = "B+", Semester = "Học kỳ 2 - 2023", Year = 2023 }
 			);
 		}
 	}

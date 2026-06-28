@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: GradeController.cs
  * Tổng quan: Module quản lý điểm số, cho phép Giảng viên và Admin nhập, cập nhật 
@@ -33,29 +33,61 @@ namespace StudentManagementSystem.Controllers
 
 		/// <summary>
 		/// HÀM (METHOD): Entry [GET]
-		/// Mục đích: Hiển thị giao diện nhập điểm cho một lớp và môn học cụ thể.
-		/// Tham số: classId (Mã lớp hành chính), subjectCode (Mã môn học).
+		/// Mục đích: Hiển thị giao diện nhập điểm cho một Lớp học phần cụ thể.
+		/// Tham số: courseClassId (Mã lớp học phần).
 		/// </summary>
-		public async Task<IActionResult> Entry(string classId, string subjectCode)
+		public async Task<IActionResult> Entry(string courseClassId)
 		{
-			// Cung cấp danh sách danh mục để người dùng chọn trên giao diện
-			ViewBag.Classes = await _context.Classes.ToListAsync();
-			ViewBag.Subjects = await _context.Subjects.ToListAsync();
-
-			var students = _context.Students
-				.Include(s => s.Grades)
+			var username = User.FindFirst("Username")?.Value;
+			
+			// 1. Tải danh sách Lớp học phần khả dụng cho dropdown
+			var ccQuery = _context.CourseClasses
+				.Include(c => c.Subject)
+				.Include(c => c.Teacher)
 				.AsQueryable();
 
-			// Lọc danh sách sinh viên theo lớp được chọn
-			if (!string.IsNullOrEmpty(classId))
+			// Nếu là Giảng viên, chỉ hiển thị các lớp học phần được phân công dạy
+			if (User.IsInRole("Teacher"))
 			{
-				students = students.Where(s => s.ClassId == classId);
+				var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.Email == username || t.TeacherId == username);
+				if (teacher != null)
+				{
+					ccQuery = ccQuery.Where(c => c.TeacherId == teacher.TeacherId);
+				}
 			}
 
-			ViewBag.SelectedClass = classId;
-			ViewBag.SelectedSubject = subjectCode;
+			ViewBag.CourseClasses = await ccQuery.ToListAsync();
 
-			return View(await students.ToListAsync());
+			var studentsList = new List<Student>();
+
+			if (!string.IsNullOrEmpty(courseClassId))
+			{
+				// 2. Tìm thông tin Lớp học phần được chọn
+				var courseClass = await _context.CourseClasses
+					.Include(c => c.Subject)
+					.FirstOrDefaultAsync(c => c.CourseClassId == courseClassId);
+
+				if (courseClass != null)
+				{
+					// 3. Truy vấn danh sách sinh viên thực tế đã đăng ký hoặc đã chốt ở lớp học phần này
+					var studentIds = await _context.Registrations
+						.Where(r => r.CourseClassId == courseClassId && (r.Status == "Đã đăng ký" || r.Status == "Đã chốt"))
+						.Select(r => r.StudentId)
+						.ToListAsync();
+
+					studentsList = await _context.Students
+						.Include(s => s.Grades)
+						.Where(s => studentIds.Contains(s.MSSV))
+						.ToListAsync();
+
+					ViewBag.SelectedCourseClass = courseClassId;
+					ViewBag.SelectedSubjectCode = courseClass.SubjectCode;
+					ViewBag.SelectedSubjectName = courseClass.Subject?.SubjectName;
+					ViewBag.SelectedSemester = courseClass.Semester;
+				}
+			}
+
+			return View(studentsList);
 		}
 
 		/// <summary>
@@ -65,10 +97,14 @@ namespace StudentManagementSystem.Controllers
 		/// </summary>
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Save(List<Grade> grades, string subjectCode, string classId)
+		public async Task<IActionResult> Save(List<Grade> grades, string subjectCode, string courseClassId)
 		{
-			if (grades == null || !grades.Any() || string.IsNullOrEmpty(subjectCode))
-				return RedirectToAction(nameof(Entry), new { classId = classId, subjectCode = subjectCode });
+			if (grades == null || !grades.Any() || string.IsNullOrEmpty(subjectCode) || string.IsNullOrEmpty(courseClassId))
+				return RedirectToAction(nameof(Entry), new { courseClassId = courseClassId });
+
+			var courseClass = await _context.CourseClasses.FirstOrDefaultAsync(c => c.CourseClassId == courseClassId);
+			string semester = courseClass?.Semester ?? "N/A";
+			int year = DateTime.Now.Year;
 
 			var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.SubjectCode == subjectCode);
 			string subjectName = subject?.SubjectName ?? "N/A";
@@ -81,7 +117,7 @@ namespace StudentManagementSystem.Controllers
              */
 			var studentIds = grades.Select(g => g.StudentId).ToList();
 			var existingGrades = await _context.Grades
-				.Where(g => g.SubjectCode == subjectCode && studentIds.Contains(g.StudentId))
+				.Where(g => g.SubjectCode == subjectCode && studentIds.Contains(g.StudentId) && g.Semester == semester)
 				.ToDictionaryAsync(g => g.StudentId);
 
 			foreach (var grade in grades)
@@ -95,6 +131,8 @@ namespace StudentManagementSystem.Controllers
 
 				grade.SubjectCode = subjectCode;
 				grade.SubjectName = subjectName;
+				grade.Semester = semester;
+				grade.Year = year;
 
 				// Kiểm tra bằng Dictionary: Nếu đã có điểm thì Cập nhật, chưa có thì Thêm mới
 				if (existingGrades.TryGetValue(grade.StudentId, out var existing))
@@ -116,7 +154,7 @@ namespace StudentManagementSystem.Controllers
 			await _context.SaveChangesAsync();
 			TempData["Success"] = "Đã lưu và cập nhật điểm thành công!";
 
-			return RedirectToAction(nameof(Entry), new { classId = classId, subjectCode = subjectCode });
+			return RedirectToAction(nameof(Entry), new { courseClassId = courseClassId });
 		}
 
 		/// <summary>

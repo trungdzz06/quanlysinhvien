@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentManagementSystem.Models;
 
@@ -11,9 +12,11 @@ using StudentManagementSystem.Models;
 namespace StudentManagementSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260518182816_AddPasswordHashColumn")]
+    partial class AddPasswordHashColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,18 +60,6 @@ namespace StudentManagementSystem.Migrations
                             ClassId = "CNTT18-07",
                             ClassName = "CNTT 18-07",
                             FacultyId = "CNTT"
-                        },
-                        new
-                        {
-                            ClassId = "KT18-01",
-                            ClassName = "Kinh tế 18-01",
-                            FacultyId = "KT"
-                        },
-                        new
-                        {
-                            ClassId = "CK18-01",
-                            ClassName = "Cơ khí 18-01",
-                            FacultyId = "CK"
                         });
                 });
 
@@ -140,39 +131,6 @@ namespace StudentManagementSystem.Migrations
                             Status = "Chờ duyệt",
                             SubjectCode = "LTW_01",
                             TeacherId = "GV_003"
-                        },
-                        new
-                        {
-                            CourseClassId = "LHP_KTLT_01",
-                            CurrentStudents = 2,
-                            MaxStudents = 50,
-                            Schedule = "Thứ 6 (Ca 1)",
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Mở đăng ký",
-                            SubjectCode = "KTLT_01",
-                            TeacherId = "GV_001"
-                        },
-                        new
-                        {
-                            CourseClassId = "LHP_MMT_01",
-                            CurrentStudents = 1,
-                            MaxStudents = 45,
-                            Schedule = "Thứ 4 (Ca 3)",
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Mở đăng ký",
-                            SubjectCode = "MMT_01",
-                            TeacherId = "GV_002"
-                        },
-                        new
-                        {
-                            CourseClassId = "LHP_KTCT_01",
-                            CurrentStudents = 0,
-                            MaxStudents = 60,
-                            Schedule = "Thứ 7 (Ca 2)",
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Mở đăng ký",
-                            SubjectCode = "KTCT_01",
-                            TeacherId = "GV_004"
                         });
                 });
 
@@ -255,64 +213,6 @@ namespace StudentManagementSystem.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("Grades");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Attendance = 9m,
-                            Final = 8.5m,
-                            LetterGrade = "B+",
-                            Midterm = 8m,
-                            Semester = "Học kỳ 2 - 2023",
-                            StudentId = "18710205",
-                            SubjectCode = "CNPM_01",
-                            SubjectName = "Công nghệ phần mềm",
-                            TotalScore = 8.4m,
-                            Year = 2023
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Attendance = 10m,
-                            Final = 9m,
-                            LetterGrade = "A",
-                            Midterm = 9m,
-                            Semester = "Học kỳ 2 - 2023",
-                            StudentId = "18710205",
-                            SubjectCode = "CSDL_01",
-                            SubjectName = "Cơ sở dữ liệu",
-                            TotalScore = 9.1m,
-                            Year = 2023
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Attendance = 8m,
-                            Final = 6m,
-                            LetterGrade = "C+",
-                            Midterm = 7m,
-                            Semester = "Học kỳ 2 - 2023",
-                            StudentId = "18710204",
-                            SubjectCode = "CNPM_01",
-                            SubjectName = "Công nghệ phần mềm",
-                            TotalScore = 6.5m,
-                            Year = 2023
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Attendance = 10m,
-                            Final = 7.5m,
-                            LetterGrade = "B+",
-                            Midterm = 8.5m,
-                            Semester = "Học kỳ 2 - 2023",
-                            StudentId = "18710206",
-                            SubjectCode = "TRR_01",
-                            SubjectName = "Toán rời rạc",
-                            TotalScore = 8.05m,
-                            Year = 2023
-                        });
                 });
 
             modelBuilder.Entity("StudentManagementSystem.Models.Registration", b =>
@@ -348,38 +248,6 @@ namespace StudentManagementSystem.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("Registrations");
-
-                    b.HasData(
-                        new
-                        {
-                            RegistrationId = 1,
-                            CourseClassId = "LHP_KTLT_01",
-                            RegistrationDate = new DateTime(2024, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Đã đăng ký",
-                            StudentId = "18710205",
-                            Year = 2024
-                        },
-                        new
-                        {
-                            RegistrationId = 2,
-                            CourseClassId = "LHP_KTLT_01",
-                            RegistrationDate = new DateTime(2024, 8, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Đã đăng ký",
-                            StudentId = "18710206",
-                            Year = 2024
-                        },
-                        new
-                        {
-                            RegistrationId = 3,
-                            CourseClassId = "LHP_MMT_01",
-                            RegistrationDate = new DateTime(2024, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Semester = "Học kỳ 1 - 2024",
-                            Status = "Đã đăng ký",
-                            StudentId = "18710205",
-                            Year = 2024
-                        });
                 });
 
             modelBuilder.Entity("StudentManagementSystem.Models.Student", b =>
@@ -439,7 +307,6 @@ namespace StudentManagementSystem.Migrations
                             FullName = "Nguyễn Quang Trung",
                             Gender = "Nam",
                             Hometown = "Hà Nội",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
                             Status = "Đang học"
                         },
                         new
@@ -452,59 +319,6 @@ namespace StudentManagementSystem.Migrations
                             FullName = "Đào Ngọc Nam",
                             Gender = "Nam",
                             Hometown = "Hà Nội",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
-                            Status = "Đang học"
-                        },
-                        new
-                        {
-                            MSSV = "18710206",
-                            ClassId = "CNTT18-07",
-                            DateOfBirth = new DateTime(2001, 3, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "lan@xxx.edu",
-                            FacultyId = "CNTT",
-                            FullName = "Trần Thị Lan",
-                            Gender = "Nữ",
-                            Hometown = "Hải Phòng",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
-                            Status = "Đang học"
-                        },
-                        new
-                        {
-                            MSSV = "18710207",
-                            ClassId = "KT18-01",
-                            DateOfBirth = new DateTime(2000, 8, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "bach@xxx.edu",
-                            FacultyId = "KT",
-                            FullName = "Lê Văn Bách",
-                            Gender = "Nam",
-                            Hometown = "Nam Định",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
-                            Status = "Đang học"
-                        },
-                        new
-                        {
-                            MSSV = "18710208",
-                            ClassId = "CNTT18-06",
-                            DateOfBirth = new DateTime(2000, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "huy@xxx.edu",
-                            FacultyId = "CNTT",
-                            FullName = "Phạm Quang Huy",
-                            Gender = "Nam",
-                            Hometown = "Hà Nội",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
-                            Status = "Đang học"
-                        },
-                        new
-                        {
-                            MSSV = "18710209",
-                            ClassId = "KT18-01",
-                            DateOfBirth = new DateTime(2001, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "ngoc@xxx.edu",
-                            FacultyId = "KT",
-                            FullName = "Nguyễn Bích Ngọc",
-                            Gender = "Nữ",
-                            Hometown = "Thái Bình",
-                            PasswordHash = "$2a$11$0v6jC.8f2d.1v.Q7L0.8o.9Q5i.4E1v2d6s.4f2d.1v.Q7L0.8o",
                             Status = "Đang học"
                         });
                 });
@@ -559,41 +373,6 @@ namespace StudentManagementSystem.Migrations
                             Credits = 2,
                             FacultyId = "CB",
                             SubjectName = "Toán rời rạc"
-                        },
-                        new
-                        {
-                            SubjectCode = "KTLT_01",
-                            Credits = 3,
-                            FacultyId = "CNTT",
-                            SubjectName = "Kỹ thuật lập trình"
-                        },
-                        new
-                        {
-                            SubjectCode = "MMT_01",
-                            Credits = 3,
-                            FacultyId = "CNTT",
-                            SubjectName = "Mạng máy tính"
-                        },
-                        new
-                        {
-                            SubjectCode = "KTCT_01",
-                            Credits = 2,
-                            FacultyId = "KT",
-                            SubjectName = "Kinh tế chính trị"
-                        },
-                        new
-                        {
-                            SubjectCode = "NLCB_01",
-                            Credits = 3,
-                            FacultyId = "KT",
-                            SubjectName = "Nguyên lý cơ bản"
-                        },
-                        new
-                        {
-                            SubjectCode = "VLDC_01",
-                            Credits = 2,
-                            FacultyId = "CB",
-                            SubjectName = "Vật lý đại cương"
                         });
                 });
 
@@ -651,30 +430,6 @@ namespace StudentManagementSystem.Migrations
                             Email = "tbc@dainam.edu.vn",
                             FacultyId = "CNTT",
                             FullName = "Trần Bảo Châu",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            TeacherId = "GV_004",
-                            Email = "lma@dainam.edu.vn",
-                            FacultyId = "KT",
-                            FullName = "Lê Mai Anh",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            TeacherId = "GV_005",
-                            Email = "ht@dainam.edu.vn",
-                            FacultyId = "CB",
-                            FullName = "Hoàng Tuấn",
-                            Status = "Active"
-                        },
-                        new
-                        {
-                            TeacherId = "GV_006",
-                            Email = "dqm@dainam.edu.vn",
-                            FacultyId = "CK",
-                            FullName = "Đinh Quang Minh",
                             Status = "Active"
                         });
                 });

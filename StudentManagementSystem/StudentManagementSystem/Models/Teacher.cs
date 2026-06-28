@@ -47,8 +47,8 @@ namespace StudentManagementSystem.Models
 
 		[Phone]
 		public string? Phone { get; set; }
-
-		public string? Status { get; set; }
+        public string? PasswordHash { get; set; }
+        public string? Status { get; set; }
 
 		/* * LOGIC PHỨC TẠP: QUAN HỆ GIẢNG DẠY (One-to-Many)
          * virtual ICollection<CourseClass>: Danh sách các lớp học phần mà giảng viên đang phụ trách.

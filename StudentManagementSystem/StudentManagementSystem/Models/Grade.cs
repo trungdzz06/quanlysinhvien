@@ -59,4 +59,5 @@ namespace StudentManagementSystem.Models
 		public string? Semester { get; set; }
 		public int Year { get; set; }
 	}
+
 }

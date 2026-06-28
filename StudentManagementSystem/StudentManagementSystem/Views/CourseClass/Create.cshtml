@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Create.cshtml (CourseClass)
  * Tổng quan: Giao diện biểu mẫu thiết lập và mở một Lớp học phần mới.
  * Chức năng: Kết nối thông tin giữa Môn học, Giảng viên và kế hoạch đào tạo (Học kỳ, Sĩ số).
@@ -32,7 +32,7 @@
                 <div class="form-group">
                     <label>Mã Lớp Học Phần:</label>
                     <input asp-for="CourseClassId" class="form-control" placeholder="VD: LHP_CNPM_01" required />
-                    <span asp-validation-for="CourseClassId" class="text-danger"></span>
+                    <span asp-validation-for="CourseClassId" class="text-danger" style="color: red; font-size: 0.9em; display: block; margin-top: 5px;"></span>
                 </div>
 
                 @* 2. Chọn Môn học: Lấy dữ liệu từ bảng Subjects thông qua ViewBag *@
@@ -51,6 +51,7 @@
                             asp-items="@(new SelectList(ViewBag.Teachers, "TeacherId", "FullName"))">
                         <option value="">-- Chọn giảng viên --</option>
                     </select>
+                    <span asp-validation-for="TeacherId" class="text-danger" style="color: red; font-size: 0.9em; display: block; margin-top: 5px;"></span>
                 </div>
 
                 @* 4. Chọn Học kỳ tác nghiệp *@

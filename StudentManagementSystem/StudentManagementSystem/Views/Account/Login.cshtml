@@ -1,82 +1,415 @@
-﻿@* 
+@* 
  * ==============================================================================
  * Tên tệp tin: Login.cshtml
- * Tổng quan: Giao diện trang Đăng nhập của hệ thống quản lý sinh viên.
- * Chức năng: Cung cấp form nhập liệu để người dùng gửi thông tin xác thực về AccountController.
- * Tác giả: Nhóm phát triển phần mềm
- * Ngày tạo/sửa đổi: 05/05/2026
+ * Tổng quan: Giao diện trang Đăng nhập mới với phong cách Glassmorphism cao cấp.
+ * Chức năng: Cho phép đăng nhập hệ thống và tự động điền thông tin tài khoản mẫu.
+ * Tác giả: Antigravity AI
+ * Ngày tạo/sửa đổi: 25/06/2026
  * ==============================================================================
  *@
 
 @model StudentManagementSystem.Models.LoginViewModel
 @{
-    // Khai báo Layout chung của ứng dụng
     Layout = "_Layout";
+    ViewData["Title"] = "Đăng Nhập Hệ Thống";
 }
 
-<div class="login-container">
-    <div class="login-box">
-        @* Khối tiêu đề và Logo của trang đăng nhập *@
-        <div class="login-header">
-            <div class="login-logo">🎓</div>
-            <h1>HỆ THỐNG QUẢN LÝ SINH VIÊN</h1>
-            <h2>ĐĂNG NHẬP HỆ THỐNG</h2>
+<style>
+    /* Nhúng phông chữ Inter từ Google Fonts để tạo trải nghiệm trực quan sang trọng */
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: radial-gradient(circle at 10% 20%, rgb(15, 32, 67) 0%, rgb(11, 23, 47) 90%);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .glass-login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        position: relative;
+    }
+
+    /* Tạo các khối phát quang trang trí phía sau (Ambient lights) */
+    .ambient-glow-1 {
+        position: absolute;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(11, 60, 93, 0.4) 0%, rgba(11, 60, 93, 0) 70%);
+        top: 15%;
+        left: 20%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .ambient-glow-2 {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(22, 163, 74, 0.15) 0%, rgba(22, 163, 74, 0) 70%);
+        bottom: 10%;
+        right: 15%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 40px;
+        width: 100%;
+        max-width: 460px;
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+        color: #fff;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .glass-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .logo-container {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #0B3C5D 0%, #16A34A 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        box-shadow: 0 8px 24px rgba(11, 60, 93, 0.4);
+    }
+
+    .glass-header h1 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin: 0;
+        background: linear-gradient(to right, #ffffff, #a0aec0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glass-header p {
+        font-size: 0.85rem;
+        color: #a0aec0;
+        margin: 6px 0 0;
+    }
+
+    .glass-form-group {
+        margin-bottom: 22px;
+        position: relative;
+    }
+
+    .glass-form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #cbd5e0;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .glass-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .glass-input-icon {
+        position: absolute;
+        left: 15px;
+        font-size: 1.1rem;
+        color: #a0aec0;
+        pointer-events: none;
+    }
+
+    .glass-toggle-password {
+        position: absolute;
+        right: 15px;
+        font-size: 1.1rem;
+        color: #a0aec0;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        outline: none;
+    }
+
+    .glass-toggle-password:hover {
+        color: #fff;
+    }
+
+    .glass-input {
+        width: 100%;
+        padding: 14px 15px 14px 45px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-input::placeholder {
+        color: #718096;
+    }
+
+    .glass-input:focus {
+        border-color: rgba(22, 163, 74, 0.5);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 15px rgba(22, 163, 74, 0.25);
+    }
+
+    .glass-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        font-size: 0.85rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #cbd5e0;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .checkbox-label input {
+        accent-color: #16A34A;
+        width: 16px;
+        height: 16px;
+    }
+
+    .forgot-pass {
+        color: #a0aec0;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .forgot-pass:hover {
+        color: #16A34A;
+    }
+
+    .glass-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #16A34A 0%, #15803d 100%);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+    }
+
+    .glass-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(22, 163, 74, 0.45);
+        background: linear-gradient(135deg, #18b753 0%, #169345 100%);
+    }
+
+    .glass-btn:active {
+        transform: translateY(0);
+    }
+
+    .demo-accounts-section {
+        margin-top: 35px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 25px;
+    }
+
+    .demo-accounts-section h4 {
+        margin: 0 0 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+    }
+
+    .demo-cards-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .demo-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .demo-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(22, 163, 74, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .demo-card-icon {
+        font-size: 1.3rem;
+        margin-bottom: 5px;
+    }
+
+    .demo-card-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #cbd5e0;
+        margin-bottom: 2px;
+    }
+
+    .demo-card-desc {
+        font-size: 0.65rem;
+        color: #718096;
+    }
+
+    .validation-summary {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        border-radius: 10px;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+    }
+
+    .validation-summary ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="glass-login-container">
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="glass-card">
+        <div class="glass-header">
+            <div class="logo-container">🎓</div>
+            <h1>QUẢN LÝ SINH VIÊN</h1>
+            <p>Hệ thống hỗ trợ Đào tạo và Khảo thí</p>
         </div>
 
-        @*
-         * HÀM/MODULE: Form Đăng nhập
-         * asp-action="Login": Chỉ định hàm xử lý dữ liệu là Login trong AccountController.
-         * method="post": Phương thức gửi dữ liệu an toàn.
-         *@
         <form asp-action="Login" method="post">
-            
-            @* LOGIC PHỨC TẠP: Validation Summary
-               Hiển thị tất cả các lỗi nghiệp vụ trả về từ Controller (ví dụ: sai tài khoản, mật khẩu) *@
-            <div asp-validation-summary="All" class="text-danger"></div>
-            
-            @* Ô nhập liệu Tên đăng nhập *@
-            <div class="form-group">
-                <label asp-for="Username">Tên đăng nhập / Email:</label>
-                <div class="input-with-icon">
-                    <span class="icon">👤</span>
-                    @* asp-for: Tự động liên kết (binding) với thuộc tính Username trong Model *@
-                    <input asp-for="Username" class="form-control" placeholder="Nhập email hoặc mã số..." />
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="validation-summary text-danger">
+                    <div asp-validation-summary="All"></div>
                 </div>
-                @* Hiển thị thông báo lỗi riêng cho trường Username nếu để trống hoặc sai định dạng *@
-                <span asp-validation-for="Username" class="text-danger"></span>
+            }
+
+            <div class="glass-form-group">
+                <label asp-for="Username">Tài khoản truy cập</label>
+                <div class="glass-input-wrapper">
+                    <span class="glass-input-icon">👤</span>
+                    <input asp-for="Username" class="glass-input" id="loginUsername" placeholder="Nhập Email hoặc Mã truy cập..." required />
+                </div>
+                <span asp-validation-for="Username" class="text-danger" style="font-size: 0.75rem; margin-top: 4px; display: block;"></span>
             </div>
 
-            @* Ô nhập liệu Mật khẩu *@
-            <div class="form-group">
-                <label asp-for="Password">Mật khẩu:</label>
-                <div class="input-with-icon">
-                    <span class="icon">🔒</span>
-                    <input asp-for="Password" class="form-control" placeholder="••••••••••••••••" />
+            <div class="glass-form-group">
+                <label asp-for="Password">Mật khẩu</label>
+                <div class="glass-input-wrapper">
+                    <span class="glass-input-icon">🔒</span>
+                    <input asp-for="Password" type="password" class="glass-input" id="loginPassword" placeholder="Nhập mật khẩu..." style="padding-right: 45px;" required />
+                    <button type="button" class="glass-toggle-password" onclick="togglePasswordVisibility('loginPassword', this)">👁️</button>
                 </div>
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <span asp-validation-for="Password" class="text-danger" style="font-size: 0.75rem; margin-top: 4px; display: block;"></span>
             </div>
 
-            @* Các tùy chọn bổ sung: Ghi nhớ đăng nhập và Quên mật khẩu *@
-            <div class="form-options">
-                <label>
+            <div class="glass-options">
+                <label class="checkbox-label">
                     <input asp-for="RememberMe" /> Nhớ mật khẩu
                 </label>
-                <a href="#">Quên mật khẩu?</a>
+                <a href="#" class="forgot-pass">Quên mật khẩu?</a>
             </div>
 
-            @* Nút gửi form thực hiện đăng nhập *@
-            <button type="submit" class="btn-login">ĐĂNG NHẬP</button>
+            <button type="submit" class="glass-btn">ĐĂNG NHẬP</button>
 
-            @*
-             * MODULE: Thông tin hướng dẫn (Demo Info)
-             * Cung cấp các tài khoản mẫu để người dùng thử nghiệm các phân quyền khác nhau.
-             *@
-            <div class="demo-info">
-                <p>Demo accounts:</p>
-                <p>Admin: admin@xxx.edu</p>
-                <p>Teacher: gv@xxx.edu</p>
-                <p>Student: sv@xxx.edu</p>
+            <div class="demo-accounts-section">
+                <h4>Đăng nhập nhanh tài khoản Demo</h4>
+                <div class="demo-cards-container">
+                    <div class="demo-card" onclick="fillCredentials('admin@@dainam.edu.vn', 'Admin@@123')">
+                        <div class="demo-card-icon">👑</div>
+                        <div class="demo-card-title">Quản trị viên</div>
+                        <div class="demo-card-desc">Click điền</div>
+                    </div>
+                    <div class="demo-card" onclick="fillCredentials('GV_001', 'Dainam@@123')">
+                        <div class="demo-card-icon">👨‍🏫</div>
+                        <div class="demo-card-title">Giảng viên</div>
+                        <div class="demo-card-desc">Click điền</div>
+                    </div>
+                    <div class="demo-card" onclick="fillCredentials('18710205', 'Dainam@@123')">
+                        <div class="demo-card-icon">👨‍🎓</div>
+                        <div class="demo-card-title">Sinh viên</div>
+                        <div class="demo-card-desc">Click điền</div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function fillCredentials(username, password) {
+        document.getElementById('loginUsername').value = username;
+        document.getElementById('loginPassword').value = password;
+        
+        // Tạo hiệu ứng nhấp nháy màu viền xanh lá để báo hiệu đã điền
+        const inputs = [document.getElementById('loginUsername'), document.getElementById('loginPassword')];
+        inputs.forEach(input => {
+            input.style.borderColor = 'rgba(22, 163, 74, 0.8)';
+            input.style.boxShadow = '0 0 15px rgba(22, 163, 74, 0.4)';
+            setTimeout(() => {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            }, 600);
+        });
+    }
+
+    function togglePasswordVisibility(inputId, button) {
+        const passwordInput = document.getElementById(inputId);
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            button.innerText = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            button.innerText = '👁️';
+        }
+    }
+</script>

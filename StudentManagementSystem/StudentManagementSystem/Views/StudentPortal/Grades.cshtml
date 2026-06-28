@@ -1,0 +1,111 @@
+﻿@* * ==============================================================================
+
+Tên tệp tin: Grades.cshtml (StudentPortal)
+
+Tổng quan: Giao diện xem bảng điểm cá nhân dành cho Sinh viên.
+
+Chức năng:
+
+Hiển thị danh sách điểm số chi tiết các thành phần (Chuyên cần, Giữa kỳ, Cuối kỳ).
+
+Tự động tính toán hiển thị điểm tổng kết hệ 10 và quy đổi sang điểm chữ (A, B, C, D, F).
+
+Cung cấp bộ lọc tương tác nhanh để xem điểm theo từng Học kỳ cụ thể.
+
+Tác giả: Nhóm 4
+
+Ngày tạo/sửa đổi: 26/05/2026
+
+==============================================================================
+*@
+
+@model IEnumerable<StudentManagementSystem.Models.Grade>
+
+@{
+    ViewData["Title"] = "Bảng Điểm Cá Nhân";
+    Layout = "_Layout";
+}
+
+@* 1. THANH LỌC HỌC KỲ (FILTER BAR WITH AUTO-SUBMIT)
+   LOGIC PHỨC TẠP 1: Tương tác bất đồng bộ qua Form và DOM State
+   - Thuộc tính 'onchange="this.form.submit()"' kích hoạt sự kiện JavaScript ngay khi người dùng
+     thay đổi giá trị Dropdown. Trình duyệt tự động kích hoạt gửi Form (GET request) mà không cần
+     nút "Tìm kiếm", tối ưu trải nghiệm người dùng (UX).
+   - Cú pháp đặc biệt '<!option>' (hoặc mã Razor thuần) ngăn ASP.NET Core can thiệp tiền xử lý,
+     kết hợp toán tử ba ngôi kiểm tra dữ liệu từ QueryString: 'Context.Request.Query["semester"] == sem ? "selected" : ""'
+     giúp giữ trạng thái (State) học kỳ vừa chọn không bị mất đi (reset) sau khi trang bị tải lại.
+*@
+<div class="filter-bar" style="background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+    <form method="get" asp-action="Grades">
+        <label style="font-weight: bold; margin-right: 10px;">Lọc theo học kỳ:</label>
+        <select name="semester" onchange="this.form.submit()" class="form-control" style="width: auto; display: inline-block;">
+            <option value="">-- Tất cả các học kỳ --</option>
+            @if (ViewBag.Semesters != null)
+            {
+                foreach (var sem in ViewBag.Semesters)
+                {
+                    <!option value="@sem" @(Context.Request.Query["semester"] == sem ? "selected" : "")>@sem</!option>
+                }
+            }
+        </select>
+    </form>
+</div>
+
+@* 2. BẢNG HIỂN THỊ ĐIỂM SỐ CHI TIẾT
+   LOGIC PHỨC TẠP 2: Đánh giá dữ liệu an toàn và Định dạng điểm số (Defensive Rendering)
+   - Khối kiểm tra điều kiện '@if (Model != null && Model.Any())' cô lập các rủi ro NullReferenceException.
+     Nếu danh sách điểm trống, hệ thống chuyển sang nhánh 'else' hiển thị thông báo thân thiện, tránh làm sập UI.
+   - Định dạng chuỗi '.ToString("0.#")' và '.ToString("0.##")' giải quyết bài toán số thập phân động:
+     Nếu điểm là số nguyên (ví dụ: 8.0), nó sẽ hiển thị ngắn gọn là 8. Nếu có số lẻ (ví dụ: 7.55), nó giữ nguyên 2 chữ số
+     thập phân, vừa tiết kiệm không gian hiển thị, vừa phản ánh chính xác điểm số.
+*@
+<table class="data-table" style="width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <thead>
+        <tr style="background-color: #0b3c5d; color: #fff; text-align: left;">
+            <th style="padding: 12px; border: 1px solid #ddd;">Mã Môn</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Tên Môn Học</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Học Kỳ</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Chuyên Cần</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Giữa Kỳ</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Cuối Kỳ</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Tổng Kết</th>
+            <th style="padding: 12px; border: 1px solid #ddd;">Điểm Chữ</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var grade in Model)
+            {
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px;"><strong>@grade.SubjectCode</strong></td>
+                    <td style="padding: 12px;">@grade.SubjectName</td>
+                    <td style="padding: 12px;">@grade.Semester</td>
+                    <td style="padding: 12px; text-align: center;">@grade.Attendance.ToString("0.#")</td>
+                    <td style="padding: 12px; text-align: center;">@grade.Midterm.ToString("0.#")</td>
+                    <td style="padding: 12px; text-align: center;">@grade.Final.ToString("0.#")</td>
+                    <td style="padding: 12px; text-align: center; font-weight: bold; color: #0b3c5d;">@grade.TotalScore.ToString("0.##")</td>
+
+                    @* LOGIC PHỨC TẠP 3: Trực quan hóa dữ liệu theo điều kiện (Conditional UI Styling)
+                       Sử dụng cấu trúc điều kiện inline 'grade.LetterGrade == "F" ? "red" : "#28a745"'
+                       để thay đổi mã màu CSS thời gian thực. Sinh viên trượt môn (Điểm F) ngay lập tức bị cảnh báo bằng màu đỏ,
+                       trong khi các điểm số đạt chuẩn (A, B, C, D) hiển thị sắc xanh lá dịu mắt, tăng tốc độ nhận biết thông tin.
+                    *@
+                    <td style="padding: 12px; text-align: center;">
+                        <span style="font-weight: bold; color: @(grade.LetterGrade == "F" ? "red" : "#28a745");">
+                            @grade.LetterGrade
+                        </span>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" style="text-align:center; padding: 30px; color: #888; font-style: italic;">
+                    Chưa có dữ liệu điểm cho học kỳ này.
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

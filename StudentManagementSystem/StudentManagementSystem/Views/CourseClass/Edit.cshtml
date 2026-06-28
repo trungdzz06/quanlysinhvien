@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Edit.cshtml (CourseClass)
  * Tổng quan: Giao diện biểu mẫu cập nhật thông tin Lớp học phần đã tồn tại.
  * Chức năng: Cho phép thay đổi môn học, giảng viên, lịch trình và quản lý sĩ số.
@@ -54,6 +54,7 @@
                     <select asp-for="TeacherId" class="form-control"
                             asp-items="@(new SelectList(ViewBag.Teachers, "TeacherId", "FullName"))">
                     </select>
+                    <span asp-validation-for="TeacherId" class="text-danger" style="color: red; font-size: 0.9em; display: block; margin-top: 5px;"></span>
                 </div>
 
                 @* Cập nhật thông tin Học kỳ *@

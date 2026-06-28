@@ -1,0 +1,36 @@
+@model StudentManagementSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Thông tin Sinh viên";
+}
+
+<div class="page-container">
+    <div class="breadcrumb">
+        QUẢN LÝ SINH VIÊN > HỒ SƠ CHI TIẾT
+    </div>
+
+    <div style="max-width: 800px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="border-bottom: 2px solid #0b3c5d; padding-bottom: 10px; margin-bottom: 20px; color: #0b3c5d;">
+            Hồ sơ Sinh viên: @Model.FullName
+        </h2>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 1.1rem;">
+            <div>
+                <p><strong style="color: #555;">Mã số SV:</strong> @Model.MSSV</p>
+                <p><strong style="color: #555;">Ngày sinh:</strong> @Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                <p><strong style="color: #555;">Giới tính:</strong> @Model.Gender</p>
+                <p><strong style="color: #555;">Quê quán:</strong> @Model.Hometown</p>
+            </div>
+            <div>
+                <p><strong style="color: #555;">Lớp:</strong> @(Model.Class != null ? Model.Class.ClassName : "Chưa phân lớp")</p>
+                <p><strong style="color: #555;">Khoa:</strong> @(Model.Faculty != null ? Model.Faculty.FacultyName : "Chưa phân khoa")</p>
+                <p><strong style="color: #555;">Email liên hệ:</strong> @Model.Email</p>
+                <p><strong style="color: #555;">Số điện thoại:</strong> @Model.Phone</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+            <a asp-action="Index" class="btn btn-primary" style="background: #0b3c5d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Quay lại danh sách</a>
+        </div>
+    </div>
+</div>

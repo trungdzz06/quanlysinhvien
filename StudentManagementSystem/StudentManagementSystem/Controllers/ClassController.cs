@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: ClassController.cs
  * Tổng quan: Module quản lý các lớp hành chính (Lớp sinh viên) trong hệ thống.
@@ -62,6 +62,8 @@ namespace StudentManagementSystem.Controllers
 
 			// Đổ dữ liệu danh sách Khoa vào ViewBag để hiển thị trên Dropdown lọc ở giao diện
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
+			ViewBag.CurrentFacultyId = facultyId;
+			ViewBag.CurrentSearchTerm = searchTerm;
 			return View(await classes.ToListAsync());
 		}
 
@@ -139,10 +141,17 @@ namespace StudentManagementSystem.Controllers
 		{
 			if (ModelState.IsValid)
 			{
-				_context.Add(classModel);
-				await _context.SaveChangesAsync();
-				TempData["Success"] = "Đã thêm lớp hành chính thành công!";
-				return RedirectToAction(nameof(Index));
+				if (await _context.Classes.AnyAsync(c => c.ClassId == classModel.ClassId))
+				{
+					ModelState.AddModelError("ClassId", "Mã lớp này đã tồn tại trong hệ thống.");
+				}
+				else
+				{
+					_context.Add(classModel);
+					await _context.SaveChangesAsync();
+					TempData["Success"] = "Đã thêm lớp hành chính thành công!";
+					return RedirectToAction(nameof(Index));
+				}
 			}
 
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
@@ -162,9 +171,24 @@ namespace StudentManagementSystem.Controllers
 			var classModel = await _context.Classes.FindAsync(id);
 			if (classModel != null)
 			{
-				_context.Classes.Remove(classModel);
-				await _context.SaveChangesAsync();
-				TempData["Success"] = "Đã xóa lớp thành công!";
+				// LOGIC NGHIỆP VỤ: Kiểm tra xem lớp học có đang chứa sinh viên không
+				bool hasStudents = await _context.Students.AnyAsync(s => s.ClassId == id);
+				if (hasStudents)
+				{
+					TempData["Error"] = "❌ LỖI: Không thể xóa lớp học này vì đang có sinh viên trực thuộc. Vui lòng chuyển hoặc xóa sinh viên trước!";
+					return RedirectToAction(nameof(Index));
+				}
+
+				try
+				{
+					_context.Classes.Remove(classModel);
+					await _context.SaveChangesAsync();
+					TempData["Success"] = "Đã xóa lớp thành công!";
+				}
+				catch (DbUpdateException)
+				{
+					TempData["Error"] = "❌ LỖI: Ràng buộc cơ sở dữ liệu. Không thể xóa lớp này!";
+				}
 			}
 
 			return RedirectToAction(nameof(Index));

@@ -1,0 +1,84 @@
+@model StudentManagementSystem.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+}
+
+<div class="page-container">
+    <div class="breadcrumb">
+        TÀI KHOẢN > HỒ SƠ CỦA TÔI
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    <div style="display: flex; gap: 20px;">
+        <!-- Thông tin cá nhân -->
+        <div style="flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="border-bottom: 2px solid #0b3c5d; padding-bottom: 10px; margin-bottom: 20px;">Thông tin cá nhân</h3>
+            <p><strong>Mã định danh:</strong> @Model.UserId</p>
+            <p><strong>Họ và tên:</strong> @Model.FullName</p>
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Vai trò:</strong> @(Model.Role == "Student" ? "Sinh viên" : Model.Role == "Teacher" ? "Giảng viên" : "Quản trị viên")</p>
+        </div>
+
+        <!-- Đổi mật khẩu -->
+        <div style="flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="border-bottom: 2px solid #0b3c5d; padding-bottom: 10px; margin-bottom: 20px;">Đổi mật khẩu</h3>
+            
+            <form asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="color: red; margin-bottom: 15px;"></div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label asp-for="OldPassword" style="display: block; font-weight: bold; margin-bottom: 5px;">Mật khẩu hiện tại</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input asp-for="OldPassword" class="form-control" type="password" id="oldPassword" style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid #ccc; border-radius: 4px;" />
+                        <button type="button" onclick="togglePasswordVisibility('oldPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0;">👁️</button>
+                    </div>
+                    <span asp-validation-for="OldPassword" class="text-danger" style="color: red; font-size: 0.9em;"></span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label asp-for="NewPassword" style="display: block; font-weight: bold; margin-bottom: 5px;">Mật khẩu mới</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input asp-for="NewPassword" class="form-control" type="password" id="newPassword" style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid #ccc; border-radius: 4px;" />
+                        <button type="button" onclick="togglePasswordVisibility('newPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0;">👁️</button>
+                    </div>
+                    <span asp-validation-for="NewPassword" class="text-danger" style="color: red; font-size: 0.9em;"></span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label asp-for="ConfirmPassword" style="display: block; font-weight: bold; margin-bottom: 5px;">Xác nhận mật khẩu mới</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input asp-for="ConfirmPassword" class="form-control" type="password" id="confirmPassword" style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid #ccc; border-radius: 4px;" />
+                        <button type="button" onclick="togglePasswordVisibility('confirmPassword', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0;">👁️</button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger" style="color: red; font-size: 0.9em;"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="background-color: #0b3c5d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Lưu Mật Khẩu</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function togglePasswordVisibility(inputId, button) {
+            const passwordInput = document.getElementById(inputId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                button.innerText = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                button.innerText = '👁️';
+            }
+        }
+    </script>
+}

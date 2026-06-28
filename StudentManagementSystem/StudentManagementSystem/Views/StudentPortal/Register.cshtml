@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Register.cshtml (StudentPortal)
  * Tổng quan: Giao diện đăng ký học phần (tín chỉ) dành cho sinh viên.
  * Chức năng: 
@@ -19,6 +19,20 @@
     <div class="breadcrumb">
         ĐĂNG KÝ HỌC PHẦN (TÍN CHỈ) - @ViewBag.Semester
     </div>
+
+    @* Hiển thị thông báo phản hồi từ hệ thống (TempData) *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            ✅ @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            ❌ @TempData["Error"]
+        </div>
+    }
 
     @* MODULE: TÌM KIẾM NHANH (CLIENT-SIDE FILTER) *@
     <div class="search-bar" style="margin-bottom: 20px;">
@@ -41,6 +55,7 @@
                         <th>Tên Môn</th>
                         <th>Lịch Học</th>
                         <th>Sĩ Số</th>
+                        <th>Trạng Thái</th>
                         <th>Hành Động</th>
                     </tr>
                 </thead>
@@ -61,22 +76,48 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @* * LOGIC KIỂM TRA ĐIỀU KIỆN ĐĂNG KÝ
-                                     * Nếu lớp chưa đầy: Hiển thị form đăng ký.
-                                     * Nếu lớp đã đầy: Vô hiệu hóa (disable) nút bấm.
-                                     *@
-                                    @if (course.CurrentStudents < course.MaxStudents)
+                                    @switch (course.Status)
                                     {
-                                        <form asp-action="RegisterCourse" method="post" style="display:inline;">
+                                        case "Mở đăng ký":
+                                            <span style="color: #28a745; font-weight: bold;">🟢 Đã duyệt</span>
+                                            break;
+                                        case "Đã đầy":
+                                            <span style="color: #dc3545; font-weight: bold;">🔴 Đã đầy</span>
+                                            break;
+                                        case "Chờ duyệt":
+                                            <span style="color: #ffc107; font-weight: bold;">🟡 Chờ duyệt</span>
+                                            break;
+                                        default:
+                                            <span style="color: #6c757d; font-weight: bold;">⚪ @course.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @* * LOGIC KIỂM TRA ĐIỀU KIỆN ĐĂNG KÝ
+                                     * Nếu lớp chưa đầy và đã duyệt: Hiển thị form đăng ký.
+                                     * Nếu lớp chờ duyệt/đã đầy: Vô hiệu hóa (disable) nút bấm.
+                                     * Nếu đã chốt: Vô hiệu hóa (disable) nút bấm.
+                                     * *@
+                                    @if (ViewBag.IsFinalized == true)
+                                    {
+                                        <button class="btn btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;">Đã chốt</button>
+                                    }
+                                    else if (course.Status == "Chờ duyệt")
+                                    {
+                                        <button class="btn btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;">Chờ duyệt</button>
+                                    }
+                                    else if (course.Status == "Đã đầy" || course.CurrentStudents >= course.MaxStudents)
+                                    {
+                                        <button class="btn btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;">Đã đầy</button>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Register" method="post" style="display:inline;">
                                             <input type="hidden" name="courseClassId" value="@course.CourseClassId" />
                                             <input type="hidden" name="semester" value="@ViewBag.Semester" />
                                             @Html.AntiForgeryToken() @* Bảo mật tránh tấn công giả mạo đăng ký *@
                                             <button type="submit" class="btn btn-primary btn-sm">Đăng ký</button>
                                         </form>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn btn-disabled" disabled style="opacity: 0.5; cursor: not-allowed;">Đã đầy</button>
                                     }
                                 </td>
                             </tr>
@@ -106,15 +147,18 @@
                             </div>
                             
                             @* Nút Hủy đăng ký nhanh *@
-                            <form asp-action="CancelRegistration" method="post" style="display:inline;">
-                                <input type="hidden" name="registrationId" value="@reg.RegistrationId" />
-                                <input type="hidden" name="semester" value="@ViewBag.Semester" />
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-link" style="color: red; text-decoration: none;"
-                                        onclick="return confirm('Xác nhận hủy đăng ký lớp này?')">
-                                    ❌
-                                </button>
-                            </form>
+                            @if (ViewBag.IsFinalized != true)
+                            {
+                                <form asp-action="CancelRegistration" method="post" style="display:inline;">
+                                    <input type="hidden" name="registrationId" value="@reg.RegistrationId" />
+                                    <input type="hidden" name="semester" value="@ViewBag.Semester" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link" style="color: red; text-decoration: none;"
+                                            onclick="return confirm('Xác nhận hủy đăng ký lớp này?')">
+                                        ❌
+                                    </button>
+                                </form>
+                            }
                         </li>
                         index++;
                     }
@@ -129,7 +173,18 @@
             @if (ViewBag.RegisteredClasses != null && ViewBag.RegisteredClasses.Count > 0)
             {
                 <div style="margin-top: 20px;">
-                    <button class="btn btn-danger btn-block" style="width: 100%; font-weight: bold;">CHỐT ĐĂNG KÝ</button>
+                    @if (ViewBag.IsFinalized == true)
+                    {
+                        <button class="btn btn-secondary btn-block" disabled style="width: 100%; font-weight: bold; background-color: #6c757d; color: white; border: none; padding: 10px; cursor: not-allowed;">ĐÃ CHỐT ĐĂNG KÝ</button>
+                    }
+                    else
+                    {
+                        <form asp-action="FinalizeRegistration" method="post">
+                            <input type="hidden" name="semester" value="@ViewBag.Semester" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-block" style="width: 100%; font-weight: bold;" onclick="return confirm('Bạn có chắc chắn muốn chốt đăng ký học kỳ này? Sau khi chốt sẽ không thể tự thay đổi môn học.')">CHỐT ĐĂNG KÝ</button>
+                        </form>
+                    }
                     <p style="font-size: 0.8em; color: #666; margin-top: 10px; text-align: center;">
                         ⚠️ Lưu ý: Sau khi chốt, mọi thay đổi phải liên hệ Phòng Đào tạo.
                     </p>

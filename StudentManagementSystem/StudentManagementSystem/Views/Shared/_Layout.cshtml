@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: _Layout.cshtml
  * Tổng quan: Tệp bố cục chính (Main Layout) của toàn bộ hệ thống.
  * Chức năng: 
@@ -39,6 +39,8 @@
                 <div class="user-section">
                     <span>👤 Xin chào, @User.Identity.Name</span>
                     
+                    <a asp-controller="Profile" asp-action="Index" class="btn-logout" style="background-color: #f0ad4e; margin-right: 10px; text-decoration: none;">🔑 Đổi mật khẩu</a>
+
                     @* Form đăng xuất bảo mật sử dụng phương thức POST *@
                     <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
                         <button type="submit" class="btn-logout">Đăng xuất</button>

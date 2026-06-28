@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: AccountController.cs
  * Tác giả: Nhóm phát triển phần mềm
@@ -7,141 +7,162 @@
  * ==============================================================================
  */
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentManagementSystem.Models;
+using System.Security.Claims;
 
 namespace StudentManagementSystem.Controllers
 {
+	[Authorize(Roles = "Admin")] // Chỉ Admin mới vào được các chức năng quản lý tài khoản
 	public class AccountController : Controller
 	{
 		private readonly ApplicationDbContext _context;
 
-		public AccountController(ApplicationDbContext context)
-		{
-			_context = context;
-		}
+		public AccountController(ApplicationDbContext context) => _context = context;
 
-		[HttpGet]
-		public IActionResult Login(string returnUrl = null)
-		{
-			ViewData["ReturnUrl"] = returnUrl;
-			return View();
-		}
-
+		[AllowAnonymous]
 		[HttpGet]
 		public IActionResult Register() => View();
 
+		[AllowAnonymous]
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Register(RegisterViewModel model)
 		{
-			if (ModelState.IsValid)
+			if (!ModelState.IsValid) return View(model);
+
+			var existingStudent = await _context.Students.FirstOrDefaultAsync(s => s.Email == model.Email);
+			var existingTeacher = await _context.Teachers.FirstOrDefaultAsync(t => t.Email == model.Email);
+
+			if (existingStudent != null || existingTeacher != null)
 			{
-				/* 
-                 * LOGIC PHỨC TẠP 1: KIỂM TRA TÍNH DUY NHẤT CỦA EMAIL TRÊN ĐA THỰC THỂ
-                 * Vì tài khoản được tách thành bảng Sinh viên (Student) và Giảng viên (Teacher), 
-                 * cần truy vấn song song để đảm bảo email không bị trùng lặp giữa các vai trò khác nhau.
-                 */
-				var existingStudent = await _context.Students.FirstOrDefaultAsync(s => s.Email == model.Email);
-				var existingTeacher = await _context.Teachers.FirstOrDefaultAsync(t => t.Email == model.Email);
-
-				if (existingStudent != null || existingTeacher != null)
-				{
-					ModelState.AddModelError("Email", "Email này đã được sử dụng");
-					return View(model);
-				}
-
-				if (model.Role == "Student")
-				{
-					var newStudent = new Student
-					{
-						MSSV = "SV" + DateTime.Now.Ticks.ToString().Substring(0, 8),
-						FullName = model.FullName,
-						Email = model.Email,
-						Status = "Đang học",
-						DateOfBirth = DateTime.Now.AddYears(-20),
-						Gender = "Nam"
-					};
-					_context.Students.Add(newStudent);
-				}
-				else if (model.Role == "Teacher")
-				{
-					var newTeacher = new Teacher
-					{
-						TeacherId = "GV" + DateTime.Now.Ticks.ToString().Substring(0, 6),
-						FullName = model.FullName,
-						Email = model.Email,
-						Status = "Active"
-					};
-					_context.Teachers.Add(newTeacher);
-				}
-
-				await _context.SaveChangesAsync();
-				TempData["Success"] = "Đăng ký thành công!";
-				return RedirectToAction(nameof(Login));
+				ModelState.AddModelError("Email", "Email này đã được sử dụng");
+				return View(model);
 			}
-			return View(model);
-		}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
-		{
-			if (ModelState.IsValid)
+			string passwordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
+			if (model.Role == "Student")
 			{
-				/* 
-                 * LOGIC PHỨC TẠP 2: PHÂN QUYỀN GIẢ LẬP (MOCK) & THIẾT LẬP ĐỊNH DANH (CLAIMS)
-                 * Hệ thống nhận diện quyền (Role) thông qua từ khóa trong Username để gán quyền tương ứng.
-                 * Dữ liệu sau đó được đóng gói thành các "Claims" để lưu vào Cookie xác thực, 
-                 * giúp duy trì phiên làm việc và phân quyền truy cập ở các trang khác.
-                 */
-				string role = "Student";
-				string userName = "Sinh Viên";
-
-				if (model.Username.Contains("admin")) { role = "Admin"; userName = "Admin"; }
-				else if (model.Username.Contains("gv")) { role = "Teacher"; userName = "Giảng Viên"; }
-
-				var claims = new List<Claim>
+				var newStudent = new Student
 				{
-					new Claim(ClaimTypes.Name, userName),
-					new Claim(ClaimTypes.Role, role),
-					new Claim("Username", model.Username)
+					MSSV = "SV" + Math.Abs(DateTime.Now.Ticks).ToString().Substring(0, 8),
+					FullName = model.FullName,
+					Email = model.Email,
+					PasswordHash = passwordHash,
+					Status = "Đang học",
+					DateOfBirth = DateTime.Now.AddYears(-20),
+					Gender = "Nam"
 				};
-
-				var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-				await HttpContext.SignInAsync(
-					CookieAuthenticationDefaults.AuthenticationScheme,
-					new ClaimsPrincipal(claimsIdentity),
-					new AuthenticationProperties { IsPersistent = model.RememberMe });
-
-				return RedirectToLocal(returnUrl);
+				_context.Students.Add(newStudent);
 			}
-			return View(model);
-		}
+			else if (model.Role == "Teacher")
+			{
+				var newTeacher = new Teacher
+				{
+					TeacherId = "GV" + Math.Abs(DateTime.Now.Ticks).ToString().Substring(0, 6),
+					FullName = model.FullName,
+					Email = model.Email,
+					PasswordHash = passwordHash,
+					Status = "Active"
+				};
+				_context.Teachers.Add(newTeacher);
+			}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Logout()
-		{
-			await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+			await _context.SaveChangesAsync();
+			TempData["Success"] = "Đăng ký thành công! Hãy đăng nhập.";
 			return RedirectToAction(nameof(Login));
 		}
 
-		/* 
-         * LOGIC PHỨC TẠP 3: BẢO MẬT CHUYỂN HƯỚNG (LOCAL REDIRECT)
-         * Ngăn chặn lỗ hổng "Open Redirect" bằng cách kiểm tra đường dẫn trả về.
-         * Chỉ cho phép chuyển hướng nếu URL thuộc nội bộ website, tránh bị hacker lợi dụng 
-         * để điều hướng người dùng sang các trang web độc hại sau khi đăng nhập.
-         */
-		private IActionResult RedirectToLocal(string returnUrl)
+		[AllowAnonymous]
+		[HttpGet]
+		public IActionResult Login() => View();
+
+		[AllowAnonymous]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Login(LoginViewModel model)
 		{
-			if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
-			return RedirectToAction("Dashboard", "Home");
+			if (!ModelState.IsValid) return View(model);
+
+			// Kiểm tra Sinh viên
+			var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == model.Username || s.MSSV == model.Username);
+			if (student != null && BCrypt.Net.BCrypt.Verify(model.Password, student.PasswordHash))
+			{
+				await SignInUser(student.FullName, "Student", student.MSSV);
+				return RedirectToAction("Index", "StudentPortal");
+			}
+
+			// Kiểm tra Giảng viên
+			var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.Email == model.Username || t.TeacherId == model.Username);
+			if (teacher != null && BCrypt.Net.BCrypt.Verify(model.Password, teacher.PasswordHash))
+			{
+				await SignInUser(teacher.FullName, "Teacher", teacher.TeacherId);
+				return RedirectToAction("Dashboard", "Home");
+			}
+
+			// Tài khoản Admin hệ thống (Hardcoded hoặc lấy từ bảng cấu hình)
+			if (model.Username == "admin@dainam.edu.vn" && model.Password == "Admin@123")
+			{
+				await SignInUser("Quản trị viên", "Admin", "ADMIN01");
+				return RedirectToAction("Dashboard", "Home");
+			}
+
+			ModelState.AddModelError("", "Tài khoản hoặc mật khẩu không đúng.");
+			return View(model);
+		}
+
+		private async Task SignInUser(string name, string role, string userId)
+		{
+			var claims = new List<Claim> {
+			new Claim(ClaimTypes.Name, name),
+			new Claim(ClaimTypes.Role, role),
+			new Claim("Username", userId)
+		};
+			var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+			await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+		}
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> UpdateOldPasswords()
+        {
+            // 1. Dùng thư viện BCrypt tạo ra 1 mã Hash chuẩn cho chữ "Dainam@123"
+            string defaultHash = BCrypt.Net.BCrypt.HashPassword("Dainam@123");
+
+            // 2. Quét toàn bộ Sinh viên chưa có mật khẩu (PasswordHash bị NULL)
+            var students = await _context.Students
+                                         .Where(s => string.IsNullOrEmpty(s.PasswordHash))
+                                         .ToListAsync();
+            foreach (var student in students)
+            {
+                student.PasswordHash = defaultHash;
+            }
+
+            // 3. Quét toàn bộ Giảng viên chưa có mật khẩu
+            var teachers = await _context.Teachers
+                                         .Where(t => string.IsNullOrEmpty(t.PasswordHash))
+                                         .ToListAsync();
+            foreach (var teacher in teachers)
+            {
+                teacher.PasswordHash = defaultHash;
+            }
+
+            // 4. Lưu toàn bộ thay đổi xuống SQL Server
+            await _context.SaveChangesAsync();
+
+            // In thông báo ra màn hình
+            return Content($"✅ QUÉT THÀNH CÔNG! Đã cấp mật khẩu 'Dainam@123' cho {students.Count} Sinh viên và {teachers.Count} Giảng viên cũ.");
+        }
+        [AllowAnonymous]
+        [HttpPost]
+		public async Task<IActionResult> Logout()
+		{
+			await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+			return RedirectToAction("Login");
 		}
 	}
 }

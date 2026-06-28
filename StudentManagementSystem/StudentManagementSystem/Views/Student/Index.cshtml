@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Index.cshtml (Student)
  * Tổng quan: Giao diện chính hiển thị danh sách toàn bộ sinh viên trong hệ thống.
  * Chức năng: 
@@ -24,9 +24,13 @@
     @* MODULE: HÀNH ĐỘNG NHANH *@
     <div class="action-bar">
         @* Nút thêm mới sinh viên *@
-        <button class="btn btn-success">+ Thêm Mới</button>
+        <a asp-action="Create" class="btn btn-success" style="text-decoration: none;">+ Thêm Mới</a>
         @* Chức năng xuất báo cáo định dạng Excel phục vụ lưu trữ *@
-        <button class="btn btn-primary">📥 Xuất Excel</button>
+        <a asp-action="ExportStudents" 
+           asp-route-searchTerm="@Context.Request.Query["searchTerm"]" 
+           asp-route-classFilter="@Context.Request.Query["classFilter"]" 
+           class="btn btn-primary" 
+           title="Xuất danh sách sinh viên hiện tại ra file Excel/CSV">📥 Xuất Excel (.csv)</a>
     </div>
 
     @* * MODULE: BỘ LỌC VÀ TÌM KIẾM
@@ -83,9 +87,20 @@
                         </td>
                         <td>
                             <div class="btn-group">
+                                @* Nút Xem: Chuyển hướng đến trang Info để xem thông tin *@
+                                <a asp-action="Info" asp-route-id="@student.MSSV" class="btn btn-primary">ℹ️ Xem</a>
+                                
                                 @* Nút Sửa: Chuyển hướng đến trang Detail để cập nhật hồ sơ *@
                                 <a asp-action="Detail" asp-route-id="@student.MSSV" class="btn btn-edit">✏️ Sửa</a>
                                 
+                                @* Nút Reset Mật khẩu *@
+                                <form asp-action="ResetPassword" asp-route-id="@student.MSSV" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-warning" onclick="return confirm('Bạn có chắc muốn khôi phục mật khẩu của sinh viên @student.FullName về mặc định \'Dainam@@123\' không?')">
+                                        🔑 Reset
+                                    </button>
+                                </form>
+
                                 @* * LOGIC XÓA AN TOÀN:
                                  * Sử dụng Form POST thay vì Link để tránh các cuộc tấn công CSRF.
                                  * Confirm xác nhận trước khi xóa bản ghi khỏi CSDL.
@@ -117,9 +132,25 @@
      * Giúp hệ thống hoạt động mượt mà khi số lượng sinh viên lên đến hàng nghìn.
      *@
     <div class="pagination">
-        <button class="btn-page">◀ Trước</button>
-        <span class="page-info">Trang 1 / 50</span>
-        <button class="btn-page">Tiếp ▶</button>
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <a asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-classFilter="@ViewBag.ClassFilter" class="btn-page" style="text-decoration:none;">◀ Trước</a>
+        }
+        else
+        {
+            <span class="btn-page disabled" style="color: #aaa; cursor: not-allowed;">◀ Trước</span>
+        }
+
+        <span class="page-info">Trang @ViewBag.CurrentPage / @Math.Max(1, ViewBag.TotalPages)</span>
+
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <a asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-classFilter="@ViewBag.ClassFilter" class="btn-page" style="text-decoration:none;">Tiếp ▶</a>
+        }
+        else
+        {
+            <span class="btn-page disabled" style="color: #aaa; cursor: not-allowed;">Tiếp ▶</span>
+        }
     </div>
 </div>
 

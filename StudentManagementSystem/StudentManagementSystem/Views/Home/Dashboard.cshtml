@@ -1,4 +1,4 @@
-﻿@* * ==============================================================================
+@* * ==============================================================================
  * Tên tệp tin: Index.cshtml (Dashboard)
  * Tổng quan: Trang giao diện chính sau khi đăng nhập, cung cấp cái nhìn tổng quan.
  * Chức năng: Hiển thị các chỉ số quan trọng (KPIs) và biểu đồ phân tích dữ liệu.
@@ -27,19 +27,18 @@
         </div>
         <div class="stat-card">
             <div class="stat-label">Giảng Viên</div>
-            @* Dữ liệu mẫu (Static data) cho các chỉ số ít biến động *@
-            <div class="stat-value">150</div>
+            <div class="stat-value">@ViewBag.TotalTeachers</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Môn Học</div>
-            <div class="stat-value">85</div>
+            <div class="stat-value">@ViewBag.TotalSubjects</div>
         </div>
     </div>
 
     @* * MODULE: TRỰC QUAN HÓA DỮ LIỆU (DATA VISUALIZATION)
      * Khu vực dành cho biểu đồ. Sử dụng thẻ <canvas> làm nơi vẽ đồ thị.
      *@
-    <div class="chart-container">
+    <div class="chart-container" style="position: relative; height:400px; width:100%; margin-bottom: 20px;">
         <h3>BIỂU ĐỒ SINH VIÊN THEO KHOA</h3>
         <canvas id="facultyChart"></canvas>
     </div>
@@ -50,11 +49,20 @@
     <div class="notifications">
         <h3>THÔNG BÁO MỚI</h3>
         <div class="notification success">
-            <span>🟢</span> Hệ thống đã sao lưu dữ liệu thành công.
+            <span>🟢</span> Hệ thống đã sao lưu dữ liệu thành công lúc @(((DateTime)ViewBag.LastBackupTime).ToString("HH:mm dd/MM/yyyy")).
         </div>
-        <div class="notification warning">
-            <span>🟡</span> 15 lớp học phần chưa có giảng viên phụ trách.
-        </div>
+        @if (ViewBag.UnassignedClassesCount > 0)
+        {
+            <div class="notification warning">
+                <span>🟡</span> @ViewBag.UnassignedClassesCount lớp học phần chưa có giảng viên phụ trách.
+            </div>
+        }
+        else
+        {
+            <div class="notification success">
+                <span>🟢</span> Tất cả lớp học phần đã được phân công giảng viên.
+            </div>
+        }
     </div>
 </div>
 

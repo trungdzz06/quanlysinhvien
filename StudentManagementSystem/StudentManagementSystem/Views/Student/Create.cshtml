@@ -1,0 +1,142 @@
+﻿@* * ==============================================================================
+
+Tên tệp tin: Create.cshtml (Student)
+
+Tổng quan: Giao diện form nhập liệu để thêm mới một sinh viên vào hệ thống.
+
+Chức năng:
+
+Thu thập thông tin cá nhân, học vụ và liên hệ của sinh viên.
+
+Sử dụng Client-side Validation để kiểm tra dữ liệu trước khi gửi về Controller.
+
+Tác giả: Nhóm 4
+
+Ngày tạo/sửa đổi: 26/05/2026
+
+==============================================================================
+*@
+
+@model StudentManagementSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Thêm Sinh Viên Mới";
+}
+
+<div class="form-card" style="max-width: 800px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+
+    @* LOGIC PHỨC TẠP 1: Luồng gửi nhận dữ liệu (Model Binding & Anti-Forgery Token)
+       - asp-action="Create" cùng method="post" chỉ định điểm đích xử lý dữ liệu tại Controller.
+       - ASP.NET tự động sinh một token bảo mật ẩn (Anti-Forgery Token) khớp với [ValidateAntiForgeryToken]
+         ở Controller để chặn đứng các cuộc tấn công giả mạo yêu cầu chéo trang (CSRF).
+    *@
+    <form asp-action="Create" method="post">
+
+        @* asp-validation-summary="ModelOnly" hoạt động như một bộ gom lỗi tổng quát từ Server.
+           Nó sẽ lọc các lỗi không thuộc về trường cụ thể nào (ví dụ: Lỗi hệ thống, lỗi trùng lặp ràng buộc phức tạp)
+           để hiển thị tập trung tại đầu Form.
+        *@
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <h4 style="color: #0b3c5d; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">THÔNG TIN CƠ BẢN</h4>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+            @* LOGIC PHỨC TẠP 2: Ràng buộc dữ liệu 2 chiều (Tag Helpers & Client Validation)
+               - Thẻ thuộc tính 'asp-for' đồng bộ trực tiếp tên phần tử HTML với thuộc tính của Class Model Student.
+               - 'asp-validation-for' hoạt động dựa vào siêu dữ liệu (Data Annotations) định nghĩa trong Model.
+                 Nếu ô nhập liệu vi phạm quy tắc (vd: bỏ trống trường bắt buộc), thẻ này sẽ nhận tín hiệu lỗi
+                 từ jQuery Validation ở cuối trang để hiển thị thông báo ngay lập tức mà không cần Reload lại trang.
+            *@
+            <div class="form-group">
+                <label>Mã Sinh Viên (MSSV):</label>
+                <input asp-for="MSSV" class="form-control" required placeholder="VD: 18710206" />
+                <span asp-validation-for="MSSV" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Họ và Tên:</label>
+                <input asp-for="FullName" class="form-control" required placeholder="Nhập họ tên đầy đủ..." />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Ngày Sinh:</label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Giới Tính:</label>
+                <select asp-for="Gender" class="form-control">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Quê Quán:</label>
+                <input asp-for="Hometown" class="form-control" placeholder="Tỉnh/Thành phố..." />
+            </div>
+        </div>
+
+        <h4 style="color: #0b3c5d; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">THÔNG TIN HỌC VỤ & LIÊN HỆ</h4>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Email Nhà Trường:</label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="VD: sv@xxx.edu.vn" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Số Điện Thoại:</label>
+                <input asp-for="Phone" type="tel" class="form-control" placeholder="Nhập số điện thoại..." />
+            </div>
+
+            @* LOGIC PHỨC TẠP 3: Ánh xạ dữ liệu danh mục ngoại khóa (Dynamic Populating & Foreign Keys)
+               - 'new SelectList(ViewBag.Classes, "ClassId", "ClassName")' chuyển đổi một danh sách thuần túy từ bộ nhớ tạm ViewBag
+                 thành một cấu trúc dữ liệu Key-Value phù hợp với thẻ HTML <select>.
+               - "ClassId" đóng vai trò là giá trị thực tế gửi về cơ sở dữ liệu (Value) để làm khóa ngoại liên kết bảng,
+                 trong khi "ClassName" là chuỗi văn bản hiển thị trực quan cho người dùng cuối nhìn thấy (Text).
+            *@
+            <div class="form-group">
+                <label>Lớp Hành Chính:</label>
+                <select asp-for="ClassId" class="form-control" asp-items="@(new SelectList(ViewBag.Classes, "ClassId", "ClassName"))">
+                    <option value="">-- Chọn Lớp --</option>
+                </select>
+                <span asp-validation-for="ClassId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Khoa Trực Thuộc:</label>
+                <select asp-for="FacultyId" class="form-control" asp-items="@(new SelectList(ViewBag.Faculties, "FacultyId", "FacultyName"))">
+                    <option value="">-- Chọn Khoa --</option>
+                </select>
+                <span asp-validation-for="FacultyId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label>Trạng Thái Học Tập:</label>
+            <select asp-for="Status" class="form-control" style="width: 50%;">
+                <option value="Đang học">Đang học</option>
+                <option value="Bảo lưu">Bảo lưu</option>
+                <option value="Đã thôi học">Đã thôi học</option>
+            </select>
+        </div>
+
+        <div class="action-bar-bottom" style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+
+            @* LOGIC NGHIỆP VỤ (UX Intent): Thông báo mang tính định hướng người dùng.
+               Chức năng sinh mật khẩu ngẫu nhiên hoặc mặc định và mã hóa bảo mật được che giấu hoàn toàn
+               khỏi Client, chỉ được kích hoạt xử lý ngầm tại Server sau khi vượt qua bộ lọc kiểm tra dữ liệu hợp lệ.
+            *@
+            <p style="text-align: left; float: left; color: #28a745; font-size: 0.9em; margin-top: 10px;">
+                <em>* Mật khẩu đăng nhập sẽ được hệ thống cấp tự động (Dainam@123).</em>
+            </p>
+            <a asp-action="Index" class="btn btn-cancel">Quay lại</a>
+            <button type="submit" class="btn btn-success">✅ Lưu Thông Tin</button>
+        </div>
+    </form>
+</div>

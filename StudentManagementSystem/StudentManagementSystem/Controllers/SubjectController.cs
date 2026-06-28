@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ==============================================================================
  * Tên tệp tin: SubjectController.cs
  * Tổng quan: Module quản lý danh mục môn học (Subjects) trong chương trình đào tạo.
@@ -59,6 +59,8 @@ namespace StudentManagementSystem.Controllers
 
 			// Lấy danh sách Khoa để đổ vào Dropdown lọc trên giao diện
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
+			ViewBag.CurrentFacultyId = facultyId;
+			ViewBag.CurrentSearchTerm = searchTerm;
 			return View(await subjects.ToListAsync());
 		}
 
@@ -83,10 +85,17 @@ namespace StudentManagementSystem.Controllers
 			// Kiểm tra các ràng buộc dữ liệu (Validation) được định nghĩa trong Model
 			if (ModelState.IsValid)
 			{
-				_context.Add(subject);
-				await _context.SaveChangesAsync();
-				TempData["Success"] = "Đã thêm môn học thành công!";
-				return RedirectToAction(nameof(Index));
+				if (await _context.Subjects.AnyAsync(s => s.SubjectCode == subject.SubjectCode))
+				{
+					ModelState.AddModelError("SubjectCode", "Mã môn học này đã tồn tại trong hệ thống.");
+				}
+				else
+				{
+					_context.Add(subject);
+					await _context.SaveChangesAsync();
+					TempData["Success"] = "Đã thêm môn học thành công!";
+					return RedirectToAction(nameof(Index));
+				}
 			}
 
 			ViewBag.Faculties = await _context.Faculties.ToListAsync();
@@ -157,9 +166,24 @@ namespace StudentManagementSystem.Controllers
 			var subject = await _context.Subjects.FindAsync(id);
 			if (subject != null)
 			{
-				_context.Subjects.Remove(subject);
-				await _context.SaveChangesAsync();
-				TempData["Success"] = "Đã xóa môn học!";
+				// LOGIC NGHIỆP VỤ: Kiểm tra xem môn học đã được mở lớp chưa
+				bool isUsed = await _context.CourseClasses.AnyAsync(c => c.SubjectCode == id);
+				if (isUsed)
+				{
+					TempData["Error"] = "❌ LỖI: Không thể xóa môn học này vì đã có lớp học phần được mở. Vui lòng xóa các lớp học phần trước!";
+					return RedirectToAction(nameof(Index));
+				}
+
+				try
+				{
+					_context.Subjects.Remove(subject);
+					await _context.SaveChangesAsync();
+					TempData["Success"] = "Đã xóa môn học thành công!";
+				}
+				catch (DbUpdateException)
+				{
+					TempData["Error"] = "❌ LỖI: Ràng buộc cơ sở dữ liệu. Không thể xóa môn học này!";
+				}
 			}
 
 			return RedirectToAction(nameof(Index));
